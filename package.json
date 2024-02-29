@@ -18,6 +18,7 @@
     "express-session": "^1.17.3",
     "http": "^0.0.1-security",
     "mongoose": "^6.6.5",
+    "multer": "^1.4.5-lts.1",
     "node-fetch": "^2.6.9",
     "os": "^0.1.2",
     "pug": "^3.0.2",

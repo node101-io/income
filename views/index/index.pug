@@ -1,0 +1,20 @@
+extends ../partials/head
+block content
+  .all-wrapper
+    .all-header
+      h1.general-text-title Chain List
+      input.general-form-input#chains-identifier-input(type='text' placeholder='Chain Name' value=chains_search style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#chains-apr-input(type='text' placeholder='APR' value=chains_search style='margin-left: auto; margin-right: 20px;')
+      button.general-form-button#chains-submit-button Submit
+    .all-content
+      each chain in chains
+        .each-chain-wrapper
+          h2.general-text-subtitle= chain.identifier
+          .general-text-text= ~(chain.apr)
+          a.general-form-button(href='/chain/update?id=' + chain._id) Update
+          a.general-form-button(href='/chain/wallet?chain_id=' + chain._id) Wallets
+          //- a.general-form-button(href='/update?identifier=' + chain.identifier style='margin-left: auto;') Edit
+          //- if chain.is_missed_last_update
+          //-   a.general-form-button(href='/status?identifier=' + chain.identifier style='margin-left: 20px') Set as Updated
+          //- else
+          //-   .general-form-button-not-allowed(style='margin-left: 20px') Already Updated

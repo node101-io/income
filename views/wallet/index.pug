@@ -1,0 +1,22 @@
+extends ../partials/head
+block content
+  .all-wrapper
+    .all-header
+      input.display-none#chain-json(type='text' value=JSON.stringify(chain))
+      h1.general-text-title= chain.identifier
+      h2.general-text-subtitle Wallets
+      input.general-form-input#wallet-public-key(type='text' placeholder='Public Key' style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#wallet-name(type='text' placeholder='Name' style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#wallet-type(type='text' placeholder='Type' style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#wallet-last-value-update-time(type='Text' placeholder='last_value_update_time' style='margin-left: auto; margin-right: 20px;')
+      a.general-form-button(href='/') Back
+
+
+      button.general-form-button#wallet-submit-button Submit
+    .all-content
+      each wallet in wallets
+        .each-chain-wrapper
+          h2.general-text-subtitle= wallet.public_key
+          .general-text-text= ~(wallet.self_stake_value)
+        a.general-form-button#wallet-update-button(href='/chain/wallet/update?id=' + wallet._id) Update
+        a.general-form-button(href='/delete?identifier=' + wallet._id onclick='return confirm("Are you sure you want to delete this chain?")' style='margin-top: 40px; color: var(--warning-color)') Delete

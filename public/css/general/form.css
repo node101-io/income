@@ -1,0 +1,105 @@
+:root {
+  --max-input-width: 400px;
+  --input-height: 35px;
+}
+
+.general-form-input {
+  width: calc(min(100%, var(--max-input-width)));
+  min-width: calc(min(100%, var(--max-input-width)));
+  height: var(--input-height);
+  min-height: var(--input-height);
+  margin-bottom: 10px;
+  outline: none;
+  border: 1px solid transparent;
+  box-shadow: 0 0 2px var(--shadow-color);
+  background-color: var(--background-color);
+  font-weight: 600;
+  font-size: var(--text-font-size);
+  color: var(--text-color);
+  padding: 0 15px;
+  border-radius: 3px;
+}
+.general-form-input::placeholder {
+  font-weight: 500;
+  color: var(--placeholder-color);
+}
+.general-form-input:focus {
+  border-color: var(--main-color);
+  box-shadow: none;
+}
+
+.general-form-input-not-allowed {
+  width: calc(min(100%, var(--max-input-width)));
+  min-width: calc(min(100%, var(--max-input-width)));
+  height: var(--input-height);
+  min-height: var(--input-height);
+  margin-bottom: 10px;
+  outline: none;
+  border: 1px solid transparent;
+  box-shadow: 0 0 2px var(--shadow-color);
+  background-color: var(--background-color);
+  font-weight: 600;
+  font-size: var(--text-font-size);
+  color: var(--text-color);
+  padding: 0 15px;
+  border-radius: 3px;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+}
+
+.general-form-button-wrapper {
+  width: 100%;
+  min-width: 100%;
+  height: fit-content;
+  min-height: fit-content;
+  display: flex;
+  flex-direction: column;
+}
+
+.general-form-button {
+  width: calc(min(100%, var(--max-input-width)));
+  min-width: calc(min(100%, var(--max-input-width)));
+  height: var(--input-height);
+  min-height: var(--input-height);
+  margin-bottom: 10px;
+  outline: none;
+  border: 1px solid transparent;
+  box-shadow: 0 0 2px var(--shadow-color);
+  background-color: var(--background-color);
+  font-weight: 600;
+  font-size: var(--text-font-size);
+  color: var(--text-color);
+  padding: 0 15px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.general-form-button:hover {
+  border-color: var(--main-color);
+}
+
+.general-form-button-not-allowed {
+  width: calc(min(100%, var(--max-input-width)));
+  min-width: calc(min(100%, var(--max-input-width)));
+  height: var(--input-height);
+  min-height: var(--input-height);
+  margin-bottom: 10px;
+  outline: none;
+  border: 1px solid transparent;
+  box-shadow: 0 0 2px var(--shadow-color);
+  background-color: var(--background-color);
+  font-weight: 600;
+  font-size: var(--text-font-size);
+  color: var(--text-color);
+  padding: 0 15px;
+  border-radius: 3px;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
