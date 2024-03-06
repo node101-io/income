@@ -1,13 +1,19 @@
 extends ../partials/head
 block content
   .all-wrapper
-    .all-header
+    .form-wrapper
       input.display-none#chain-json(type='text' value=JSON.stringify(chain))
       h1.general-text-title= chain.identifier
       h2.general-text-subtitle Wallets
-      input.general-form-input#wallet-public-key(type='text' placeholder='Public Key' style='margin-left: auto; margin-right: 20px;')
-      input.general-form-input#wallet-name(type='text' placeholder='Name' style='margin-left: auto; margin-right: 20px;')
-      input.general-form-input#wallet-type(type='text' placeholder='Type' style='margin-left: auto; margin-right: 20px;')
-      input.general-form-input#wallet-last-value-update-time(type='Text' placeholder='last_value_update_time' style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#wallet-public-key(type='text' placeholder='Public Key')
+      input.general-form-input#wallet-name(type='text' placeholder='Name')
+      select.general-form-input#wallet-type(type='text' placeholder='Type')
+        option.general-form-input normal
+        option.general-form-input validator
+      input.general-form-input#wallet-reward-comission(type='Text' placeholder='reward_comission')
+      input.general-form-input#wallet-self-stake-value(type='Text' placeholder='self_stake_value')
+      input.general-form-input#wallet-stake-value(type='text' placeholder='stake_value')
+      input.general-form-input#wallet-available-balance(type='text' placeholder='available_balance')
+      input.general-form-input#wallet-last-value-update-time(type='Text' placeholder='last_value_update_time')
       a.general-form-button(href='/') Back
       button.general-form-button#wallet-submit-button Add New Wallet

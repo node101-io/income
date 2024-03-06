@@ -6,7 +6,7 @@ const Job = {
   start: callback => {
     croner.Cron(process.env.SCHEDULE || '*/5 * * * *' , () => {
       Chain._updateChainPrices((err) => {
-        if(err)
+        if (err)
           return console.log(err);
 
         console.log(`Price updated ${Date.now()}`);

@@ -7,6 +7,7 @@ const updateChainGetController = require('../controllers/chain/update/get');
 const WalletsGetController = require('../controllers/chain/wallet/index/get');
 const WalletCreateGetController = require('../controllers/chain/wallet/create/get');
 const WalletUpdateGetController = require('../controllers/chain/wallet/edit/get');
+const walletUpdateDeleteGetController = require('../controllers/chain/wallet/edit/delete/get')
 const chainDeleteGetController = require('../controllers/chain/update/delete/get')
 
 const updateChainPostController = require('../controllers/chain/update/post');
@@ -42,6 +43,11 @@ router.get(
 router.get(
   '/wallet/edit',
     WalletUpdateGetController
+);
+
+router.get(
+  '/wallet/edit/delete',
+    walletUpdateDeleteGetController
 );
 
 router.post(

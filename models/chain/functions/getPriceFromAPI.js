@@ -4,7 +4,7 @@ module.exports = (token, callback) => {
   .then(res => {
     const price = res.price;
     console.log(price);
-    if(!price)
+    if (!price)
       return callback('document_not_found');
 
     return callback(null, price);

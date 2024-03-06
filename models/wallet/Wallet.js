@@ -103,7 +103,7 @@ WalletSchema.statics.createWallet = function (data, callback) { // Admin'in wall
     return callback('bad_request');
   if (!data.public_key || typeof data.public_key != 'string' || !data.public_key.trim().length || data.public_key.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
     return callback('bad_request');
-  if(!data.chain_id || !validator.isMongoId(data.chain_id.toString()) || !data.chain_id.trim().length || data.chain_id.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
+  if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()) || !data.chain_id.trim().length || data.chain_id.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
     return callback('bad_request');
 
   const newWallet = new Wallet({
@@ -111,8 +111,13 @@ WalletSchema.statics.createWallet = function (data, callback) { // Admin'in wall
     name: data.name.trim(),
     chain_id: data.chain_id.trim(),
     type: data.type.trim(),
+    reward_comission: data.reward_comission,
+    self_stake_value: data.self_stake_value,
+    stake_value: data.stake_value,
+    available_balance: data.available_balance,
     last_value_update_time: data.last_value_update_time,
-  })
+  });
+
   newWallet.save((err, wallet) => {
     if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
       return callback('duplicated_unique_field');
@@ -156,7 +161,7 @@ WalletSchema.statics.findWalletsByFilters = function (data, callback) { // Walle
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
-  if(data.chain_id && validator.isMongoId(data.chain_id.toString()))
+  if (data.chain_id && validator.isMongoId(data.chain_id.toString()))
     filters.chain_id = data.chain_id.toString();
 
     if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
@@ -224,7 +229,7 @@ WalletSchema.statics._updateWalletValues = function (callback) { // Private fonk
   // const Wallet = this;
   // Wallet.findWalletsByFilters({}, (err, wallets)=>{
   //   if (err) return callback('bad_request');
-  //   if(!wallets) return callback('document_not_found');
+  //   if (!wallets) return callback('document_not_found');
 
   //   async.timesSeries(
   //     wallets.length,

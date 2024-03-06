@@ -12,7 +12,7 @@ window.addEventListener('load', () => {
         chain_id: walletChain._id,
         type: walletType
       }, response => {
-        if(!response.success)
+        if (!response.success)
           console.log(response);
         else
           window.location.reload();

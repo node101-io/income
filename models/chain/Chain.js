@@ -60,19 +60,27 @@ ChainSchema.statics.createChain = function (data, callback) { // Admin'in chain'
   if (!data.identifier || typeof data.identifier != 'string' || !data.identifier.trim().length || data.identifier.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
     return callback('bad_request');
 
-  const newChain = new Chain({
-    identifier: data.identifier.trim(),
-    apr: data.apr,
-    token: data.token.trim()
-  });
+  const token = data.token.trim();
 
-  newChain.save((err, chain) => {
-    if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
-      return callback('duplicated_unique_field');
-    if (err)
-      return callback('database_error');
+  getPriceFromAPI(token, (err, price) => {
+    if (err) return callback(err);
+    if (!price) return callback('document_not_found');
 
-    return callback(null, chain);
+    const newChain = new Chain({
+      identifier: data.identifier.trim(),
+      apr: data.apr,
+      token: token,
+      price: price
+    });
+
+    newChain.save((err, chain) => {
+      if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
+        return callback('duplicated_unique_field');
+      if (err)
+        return callback('database_error');
+
+      return callback(null, chain);
+    });
   });
 };
 
@@ -161,8 +169,8 @@ ChainSchema.statics._updateChainPrices = function (callback) { // Private fonksi
   const Chain = this;
 
   Chain.findChainsByFilters({}, (err, chains) => {
-    if(err) return callback('database_error');
-    if(!chains) return callback('document_not_found');
+    if (err) return callback('database_error');
+    if (!chains) return callback('document_not_found');
 
     async.timesSeries(
       chains.length,

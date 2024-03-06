@@ -9,5 +9,5 @@ block content
       input.general-form-input#wallet-reward-comission(type='text' name='Reward Comission' placeholder='Reward Comission' value=wallet.reward_comission required)
       .general-form-button-wrapper
         a.general-form-button(href='/') Back
-        button.general-form-button#wallet-update-button Edit
-        a.general-form-button(href='/delete?identifier=' + wallet._id onclick='return confirm("Are you sure you want to delete this chain?")' style='margin-top: 40px; color: var(--warning-color)') Delete
+        button.general-form-button#wallet-update-button(style='margin-left: auto; color: var(--second-color)') Edit
+        a.general-form-button(href='/chain/wallet/edit/delete?id=' + wallet._id onclick='return confirm("Are you sure you want to delete this chain?")' style='margin-top: 40px; color: var(--warning-color)') Delete
