@@ -1,0 +1,11 @@
+extends ../partials/head
+block content
+  .all-wrapper
+    form.form-wrapper(method='POST' action='/chain/create')
+      h1.general-text-title Create Chain
+      input.general-form-input#chain-identifier-input(type='text', name='identifier', placeholder='Chain Name' value=chains_search style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#chain-apr-input(type='text', name='apr', placeholder='APR' value=chains_search style='margin-left: auto; margin-right: 20px;')
+      input.general-form-input#chain-token(type='text', name='token', placeholder='Token' value=chains_search style='margin-left: auto; margin-right: 20px;')
+      .general-form-button-wrapper
+        a.general-form-button(href='/') Back
+        button.general-form-button#chain-submit-button Create

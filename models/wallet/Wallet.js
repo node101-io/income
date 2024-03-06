@@ -25,7 +25,6 @@ const WalletSchema = new Schema({
   name: { // Text bir değer, filtreleme için. unique değil
     type: String,
     trim: true,
-    unique: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
   chain_id: { // MongoDB ObjectId, relational DB mantığı
@@ -57,6 +56,7 @@ const WalletSchema = new Schema({
   },
   available_balance: {
     type: Number,
+    default: 0,
     trim: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
@@ -109,11 +109,10 @@ WalletSchema.statics.createWallet = function (data, callback) { // Admin'in wall
   const newWallet = new Wallet({
     public_key: data.public_key.trim(),
     name: data.name.trim(),
-    chain_id: data.chain_id,
-    type: data.type,
+    chain_id: data.chain_id.trim(),
+    type: data.type.trim(),
     last_value_update_time: data.last_value_update_time,
   })
-
   newWallet.save((err, wallet) => {
     if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
       return callback('duplicated_unique_field');
@@ -180,21 +179,60 @@ WalletSchema.statics.findWalletByIdAndDelete = function (id, callback) { // Priv
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
-  Chain.findChainById(mongoose.Types.ObjectId(id.toString()), (err, wallet) => {
-    if (err) return callback(err);
+  Wallet.findOneAndDelete({ _id: id }, (err, wallet) => {
+    if (err) return callback('database_error');
+    if (!wallet) return callback('document_not_found');
 
-    getWallet(wallet, (err, wallet) => {
-      if (err) return callback(err);
+    return callback(null);
+  })
 
-      return callback(null, wallet);
-    });
-  });
 };//burada wallet silinirken chaini kontrol edecek dikkat et
 
 WalletSchema.statics.findChainByIdAndDelete = function (chain_id, callback) { // Neden Chain'i wallet'dan siliyoruz?! :D
+  const Wallet = this;
+
+  Wallet.findWalletsByFilters({
+    chain_id: chain_id
+  }, (err, wallets) => {
+    if (err) return callback(err);
+    if (!wallets) return callback('document_not_found');
+
+    async.timesSeries(
+      wallets.length,
+      (time, next) => Wallet.findWalletByIdAndDelete(wallets[time]._id, err => {
+        if (err) return callback(err);
+
+        return callback(null);
+      }),
+      err => {
+        if (err) return callback(err);
+
+        Chain._findChainByIdAndDelete(chain_id, err => {
+          if (err) return callback(err);
+
+          return callback(null);
+        })
+      }
+    );
+  });
 };
 
 WalletSchema.statics._updateWalletValues = function (callback) { // Private fonksiyon, cron job çağıracak her sn. async lib'i ile teker teker update atmalısın
+//bütün walletları alacaksın bunun için filter methodunu kullanabilirsin
+//walletların hepsini alınca wallet in wallets çağırıp async bir şekilde her birinin available balance'ını updateleyeceksin
+
+  // const Wallet = this;
+  // Wallet.findWalletsByFilters({}, (err, wallets)=>{
+  //   if (err) return callback('bad_request');
+  //   if(!wallets) return callback('document_not_found');
+
+  //   async.timesSeries(
+  //     wallets.length,
+  //     (time, next) => Wallet.findWalletByIdAndUpdate(wallets[time]._id, , (err, wallet) => next(err, wallet)),
+  //     (err, wallets) => callback(err, wallets)
+  //   );
+  // })
+
 };
 
 module.exports = mongoose.model('Wallet', WalletSchema);

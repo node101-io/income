@@ -4,8 +4,8 @@ module.exports = (req, res) => {
   Wallet.findWalletByIdAndFormat(req.query.id, (err, wallet) => {
     if (err) return res.redirect('/error?message=' + err);
 
-    return res.render('wallet/update', {
-      page: 'wallet/update',
+    return res.render('wallet/edit', {
+      page: 'wallet/edit',
       title: `${wallet.name} - Update Wallet`,
       includes: {
         external: {

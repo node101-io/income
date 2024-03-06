@@ -10,7 +10,7 @@ module.exports = (req, res) => {
       includes: {
         external: {
           css: ['form', 'general', 'page', 'text'], //buraya dokunmadım
-          js: ['chain', 'page', 'serverRequest'] //buraya dokunmadım
+          js: ['page', 'serverRequest']
         }
       },
       chains,

@@ -27,6 +27,13 @@ const ChainSchema = new Schema({
     min: 0,
     max: 100
   },
+  token: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
+  },
   price: { // API'dan çekilecek fonksiyon ile, cron kullanarak düzenli (her dk'da bir mesela) güncellenmeli
     type: Number,
     default: null,
@@ -55,13 +62,13 @@ ChainSchema.statics.createChain = function (data, callback) { // Admin'in chain'
 
   const newChain = new Chain({
     identifier: data.identifier.trim(),
-    apr: data.apr
+    apr: data.apr,
+    token: data.token.trim()
   });
 
   newChain.save((err, chain) => {
     if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
       return callback('duplicated_unique_field');
-
     if (err)
       return callback('database_error');
 
@@ -85,7 +92,6 @@ ChainSchema.statics.findChainById = function (id, callback) { // Chain'in id'si 
 
 ChainSchema.statics.findChainByIdAndFormat = function (id, callback) { // Chain'in id'si ile bulunması ve front'a gönderilmesi için formatlanması
   const Chain = this;
-
   if (!id || !id.length || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
@@ -105,12 +111,9 @@ ChainSchema.statics.findChainByIdAndUpdate = function (id, data, callback) { // 
 
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
-
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
-  if (!data.apr || isNaN(Number(data.apr)) || Number(data.apr) < 0 || Number(data.apr) > 100)
-    return callback('bad_request');
 
   Chain.findByIdAndUpdate(id, { $set: {
     identifier: data.identifier,
@@ -156,29 +159,28 @@ ChainSchema.statics.findChainsByFilters = function (data, callback) { // Chain a
 
 ChainSchema.statics._updateChainPrices = function (callback) { // Private fonksiyon, cron job çağıracak her 5 sn. async lib'i ile teker teker update atmalısın
   const Chain = this;
-  Chain.find({}, (err, chains) => {
-    if (err)
-      return callback('bad request');
 
-    async.each(chains, (chain, next) => {
-      getPriceFromAPI(chain.identifier, (err, price) => {
-        if (err)
-          return callback(err);
+  Chain.findChainsByFilters({}, (err, chains) => {
+    if(err) return callback('database_error');
+    if(!chains) return callback('document_not_found');
 
-        chain.price = price;
-        chain.last_price_update_time = Date.now();
-        chain.save(err => {
-          if (err)
-            return callback('database_error')
-          next();
+    async.timesSeries(
+      chains.length,
+      (time, next) => {
+        getPriceFromAPI(chains[time].token, (err, price) => {
+          if (err) return callback(err);
+
+          Chain.findChainByIdAndUpdate(chains[time]._id, {
+            price: price,
+            last_price_update_time: Date.now()
+          }, (err, chain) => {
+            if (err) return callback(err);
+
+            return callback(null);
+          })
         });
-      });
-    }, err => {
-      if (err) {
-        return callback('database_error');
-      }
-      return callback(null, { success: true, data: asd });
-    });
+      },
+    )
   });
 };
 
@@ -191,9 +193,13 @@ ChainSchema.statics._findChainByIdAndDelete = function (id, callback) { // Walle
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
-  Chain.deleteOne({ _id: id }, (err, result) => {
+  Chain.deleteOne({
+    _id: id
+  }, (err, result) => {
+
     if (err) return callback('database_error');
     if (result.deletedCount === 0) return callback('document_not_found');
+
     return callback(null, id);
   });
 

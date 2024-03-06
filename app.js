@@ -35,6 +35,8 @@ if (cluster.isMaster) {
   const MAX_SERVER_PARAMETER_LIMIT = 50000;
   const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/node101';
 
+  const Job = require('./cron/Job');
+
   const indexRouteController = require('./routes/indexRoute');
   const chainRouteController = require('./routes/chainRoute');
   // const walletRouteController = require('./routes/walletRoute');
@@ -83,9 +85,12 @@ if (cluster.isMaster) {
 
   app.use('/', indexRouteController);
   app.use('/chain', chainRouteController);
-  // app.use('/wallet', walletRouteController);
 
   server.listen(PORT, () => {
     console.log(`Server is on port ${PORT} as Worker ${cluster.worker.id} running @ process ${cluster.worker.process.pid}`);
+    if (numCPUs == 1 || cluster.worker.id % numCPUs == 1) // TODO: Change this to a more reliable way to determine the first worker
+      Job.start(() => {
+        console.log(`Cron Jobs are started on Worker ${cluster.worker.id}`);
+      });
   });
-}
+};

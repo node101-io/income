@@ -7,7 +7,7 @@ window.addEventListener('load', () => {
 
       const wallet = JSON.parse(document.getElementById('wallet-json').value);
 
-      serverRequest('/chain/wallet/update?id=' + wallet._id, 'POST', {
+      serverRequest('/chain/wallet/edit?id=' + wallet._id, 'POST', {
         name: walletName,
         type: walletType,
         reward_comission: walletRewardComission

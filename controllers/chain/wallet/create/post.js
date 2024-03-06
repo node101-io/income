@@ -1,8 +1,9 @@
-const Chain = require('../../../../models/wallet/Wallet');
+const Wallet = require('../../../../models/wallet/Wallet');
 
 module.exports = (req, res) => {
-  Chain.createWallet(req.body, (err, wallet) => {
+  Wallet.createWallet(req.body, (err, wallet) => {
     if (err) {
+      console.log(err);
       return res.json({ success: false, error: err });
     }
     return res.json({ success: true, wallet });

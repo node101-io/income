@@ -6,6 +6,7 @@ module.exports = (chain, callback) => {
     _id: chain._id.toString(),
     identifier: chain.identifier,
     apr: chain.apr,
+    token: chain.token,
     price: chain.price,
     total_value: chain.total_value
   });
