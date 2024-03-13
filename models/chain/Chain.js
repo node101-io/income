@@ -102,7 +102,6 @@ ChainSchema.statics.findChainById = function (id, callback) { // Chain'in id'si 
 
 ChainSchema.statics.findChainByIdAndFormat = function (id, callback) { // Chain'in id'si ile bulunması ve front'a gönderilmesi için formatlanması
   const Chain = this;
-  console.log(id);
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
@@ -155,13 +154,6 @@ ChainSchema.statics.findChainsByFilters = function (data, callback) { // Chain a
   const limit = data.limit && !isNaN(parseInt(data.limit)) && parseInt(data.limit) > 0 && parseInt(data.limit) < MAX_DOCUMENT_COUNT_PER_QUERY ? parseInt(data.limit) : DEFAULT_DOCUMENT_COUNT_PER_QUERY;
   const page = data.page && !isNaN(parseInt(data.page)) && parseInt(data.page) > 0 ? parseInt(data.page) : 0;
   const skip = page * limit;
-
-  // if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
-  //   filters.$or = [
-  //     { identifier: { $regex: data.search.trim(), $options: 'i' } },
-  //     { token: { $regex: data.search.trim(), $options: 'i' } }
-  //   ];
-  // };
 
   if (!data.search || typeof data.search != 'string' || !data.search.trim().length) {
 
@@ -218,20 +210,10 @@ ChainSchema.statics.findChainsByFilters = function (data, callback) { // Chain a
       )
       .catch(_ => callback('database_error'));
   };
-
-  // Chain
-  //   .find(filters)
-  //   .sort({ identifier: 1 }) // Alphabetical sorting by 'identifier'
-  //   .exec((err, chains) => {
-  //     if (err) {
-  //       return callback('database_error');
-  //     }
-  //     return callback(null, chains);
-  //   });
 };
+
 ChainSchema.statics.findChainCountByFilters = function (data, callback) {
   const Chain = this;
-  console.log(data);
 
   if (!data || typeof data != 'object')
   return callback('bad_request');
