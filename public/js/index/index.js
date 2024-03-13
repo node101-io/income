@@ -4,7 +4,7 @@ window.addEventListener('load', () => {
     document.getElementById('chain-search-input').select();
 
     document.getElementById('chain-search-input').addEventListener('keyup', event => {
-      if (event.key == 'Enter' && event.target.value?.trim()?.length) {
+      if (event.target.value?.trim()?.length) {
         window.location = `/?search=${event.target.value.trim()}`;
       } else if (event.key == 'Enter') {
         window.location = '/';
