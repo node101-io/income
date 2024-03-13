@@ -7,8 +7,10 @@ const getPriceFromAPI = require('./functions/getPriceFromAPI'); // API'a istek a
 
 const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000; // duplicated unique field ne kendi kendine çözmeni bekliyorum onu anlatmayacağım :)
 const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3; // Hack yemeyelim diye, bunu da düşünüp anla
+const MAX_DOCUMENT_COUNT_PER_QUERY = 1e2;
 const MAX_QUERY_COUNT = 1e2; // Tek seferde kaç chain döndürülecek en fazla
 const PRICE_UPDATE_INTERVAL = 1 * 60 * 1e3; // Price'ın kaç sn'de bir güncelleneceği, cron job için lazım
+const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 
 const Schema = mongoose.Schema;
 
@@ -100,7 +102,8 @@ ChainSchema.statics.findChainById = function (id, callback) { // Chain'in id'si 
 
 ChainSchema.statics.findChainByIdAndFormat = function (id, callback) { // Chain'in id'si ile bulunması ve front'a gönderilmesi için formatlanması
   const Chain = this;
-  if (!id || !id.length || !validator.isMongoId(id.toString()))
+  console.log(id);
+  if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
   Chain.findChainById(mongoose.Types.ObjectId(id.toString()), (err, chain) => {
@@ -149,28 +152,143 @@ ChainSchema.statics.findChainsByFilters = function (data, callback) { // Chain a
 
   const filters = {};
 
-  if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
+  const limit = data.limit && !isNaN(parseInt(data.limit)) && parseInt(data.limit) > 0 && parseInt(data.limit) < MAX_DOCUMENT_COUNT_PER_QUERY ? parseInt(data.limit) : DEFAULT_DOCUMENT_COUNT_PER_QUERY;
+  const page = data.page && !isNaN(parseInt(data.page)) && parseInt(data.page) > 0 ? parseInt(data.page) : 0;
+  const skip = page * limit;
+
+  // if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
+  //   filters.$or = [
+  //     { identifier: { $regex: data.search.trim(), $options: 'i' } },
+  //     { token: { $regex: data.search.trim(), $options: 'i' } }
+  //   ];
+  // };
+
+  if (!data.search || typeof data.search != 'string' || !data.search.trim().length) {
+
+    Chain.find(filters)
+      .sort({
+        is_completed: 1,
+        start_date: -1,
+        end_date: -1
+      })
+      .limit(limit)
+      .skip(skip)
+      .then(chains => async.timesSeries(
+        chains.length,
+        (time, next) => Chain.findChainByIdAndFormat(chains[time]._id, (err, chain) => next(err, chain)),
+        (err, chains) => {
+          if (err) return callback(err);
+
+          return callback(null, {
+            search: null,
+            limit,
+            page,
+            chains
+          });
+        })
+      )
+      .catch(_ => callback('database_error'));
+  } else {
     filters.$or = [
-      { identifier: { $regex: data.search.trim(), $options: 'i' } }
+      { identifier: { $regex: data.search.trim(), $options: 'i' } },
+      { token: { $regex: data.search.trim(), $options: 'i' } }
     ];
+
+    Chain
+      .find(filters)
+      .sort({
+        is_completed: 1,
+        start_date: -1,
+        end_date: -1
+      })
+      .limit(limit)
+      .skip(skip)
+      .then(chains => async.timesSeries(
+        chains.length,
+        (time, next) => Chain.findChainByIdAndFormat(chains[ time ]._id, (err, chain) => next(err, chain)),
+        (err, chains) => {
+          if (err) return callback(err);
+          return callback(null, {
+            search: data.search.trim(),
+            limit,
+            page,
+            chains
+          });
+        })
+      )
+      .catch(_ => callback('database_error'));
   };
 
-  Chain.find(filters)
-    .sort({ identifier: 1 }) // Alphabetical sorting by 'identifier'
-    .exec((err, chains) => {
-      if (err) {
-        return callback('database_error');
-      }
-      return callback(null, chains);
-    });
+  // Chain
+  //   .find(filters)
+  //   .sort({ identifier: 1 }) // Alphabetical sorting by 'identifier'
+  //   .exec((err, chains) => {
+  //     if (err) {
+  //       return callback('database_error');
+  //     }
+  //     return callback(null, chains);
+  //   });
 };
+ChainSchema.statics.findChainCountByFilters = function (data, callback) {
+  const Chain = this;
+  console.log(data);
+
+  if (!data || typeof data != 'object')
+  return callback('bad_request');
+
+  const filters = {};
+
+  if ('is_deleted' in data)
+    filters.is_deleted = data.is_deleted ? true : false;
+
+  if (data.identifier && typeof data.identifier == 'string' && data.identifier.trim().length && data.identifier.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH)
+    filters.identifier = { $regex: data.identifier.trim(), $options: 'i'};
+
+  if (data.token && typeof data.token == 'string' && data.token.trim().length && data.token.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH)
+    filters.token = { $regex: data.token.trim(), $options: 'i' };
+
+  if (!data.search || typeof data.search != 'string' || !data.search.trim().length) {
+    Chain
+      .find(filters)
+      .countDocuments()
+      .then(count => callback(null, count))
+      .catch(_ => callback('database_error'));
+  } else {
+    search = data.search.trim();
+    filters.$or = [
+      { identifier: { $regex: data.search.trim(), $options: 'i' } },
+      { token: { $regex: data.search.trim(), $options: 'i' } }
+    ];
+
+    Chain
+      .find(filters)
+      .countDocuments()
+      .then(count => callback(null, count))
+      .catch(_ => callback('database_error'));
+  };
+  // if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
+  //   search = data.search.trim();
+  //   filters.$or = [
+  //     { identifier: { $regex: data.search.trim(), $options: 'i' } },
+  //     { token: { $regex: data.search.trim(), $options: 'i' } }
+  //   ];
+  // }
+
+  // Chain
+  //   .find(filters)
+  //   .countDocuments()
+  //   .then(count => callback(null, count))
+  //   .catch(_ => callback('database_error'));
+}
 
 ChainSchema.statics._updateChainPrices = function (callback) { // Private fonksiyon, cron job çağıracak her 5 sn. async lib'i ile teker teker update atmalısın
   const Chain = this;
 
-  Chain.findChainsByFilters({}, (err, chains) => {
+  Chain.findChainsByFilters({}, (err, data) => {
     if (err) return callback('database_error');
-    if (!chains) return callback('document_not_found');
+    if (!data) return callback('document_not_found');
+
+    const chains = data.chains;
 
     async.timesSeries(
       chains.length,
