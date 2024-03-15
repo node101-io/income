@@ -8,7 +8,6 @@ const getPriceFromAPI = require('./functions/getPriceFromAPI'); // API'a istek a
 const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000; // duplicated unique field ne kendi kendine çözmeni bekliyorum onu anlatmayacağım :)
 const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3; // Hack yemeyelim diye, bunu da düşünüp anla
 const MAX_DOCUMENT_COUNT_PER_QUERY = 1e2;
-const MAX_QUERY_COUNT = 1e2; // Tek seferde kaç chain döndürülecek en fazla
 const PRICE_UPDATE_INTERVAL = 1 * 60 * 1e3; // Price'ın kaç sn'de bir güncelleneceği, cron job için lazım
 const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 

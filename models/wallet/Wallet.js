@@ -110,15 +110,17 @@ WalletSchema.statics.createWallet = function (data, callback) { // Admin'in wall
     public_key: data.public_key.trim(),
     name: data.name.trim(),
     chain_id: data.chain_id.trim(),
-    type: data.type.trim(),
+    type: data.type,
     reward_comission: data.reward_comission,
     self_stake_value: data.self_stake_value,
     stake_value: data.stake_value,
     available_balance: data.available_balance,
     last_value_update_time: data.last_value_update_time,
   });
+  console.log(newWallet);
 
   newWallet.save((err, wallet) => {
+    console.log(err);
     if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
       return callback('duplicated_unique_field');
     if (err)
