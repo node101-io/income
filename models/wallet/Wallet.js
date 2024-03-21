@@ -192,7 +192,6 @@ WalletSchema.statics.findWalletByIdAndDelete = function (id, callback) { // Priv
 
     return callback(null);
   })
-
 };//burada wallet silinirken chaini kontrol edecek dikkat et
 
 WalletSchema.statics.findChainByIdAndDelete = function (chain_id, callback) { // Neden Chain'i wallet'dan siliyoruz?! :D
