@@ -11,7 +11,7 @@ module.exports = (req, res) => {
         title: 'Dashboard',
         includes: {
           external: {
-            css: ['form', 'general', 'page', 'text', 'navigation', 'header'], //buraya dokunmadım
+            css: ['form', 'general', 'page', 'text', 'navigation', 'header', 'snapshot'],
             js: ['page', 'serverRequest']
           }
         },

@@ -1,5 +1,6 @@
 :root {
   --max-input-width: 300px;
+  --all-wrapper-padding: 40px;
 }
 
 .all-wrapper {
@@ -7,7 +8,7 @@
   min-height: 100vh;
   width: 100vw;
   min-width: 100vh;
-  padding: 40px;
+  padding: var(--all-wrapper-padding);
   display: flex;
   flex-direction: column;
   overflow: hidden;

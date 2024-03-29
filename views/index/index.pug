@@ -2,31 +2,51 @@ extends ../partials/head
 block content
   .all-wrapper
     .all-header
-      h1.general-text-title Chain List
+      h1.general-text-title Income Chart
       input.general-header-search-input#chain-search-input(type='text' placeholder='Search' value=chains_search style='margin-left: auto; margin-right: 20px;')
       a.general-form-button(href='/chain/create') Add New Chain
     .all-content
-      if chains_search
-        span.general-page-search-text(style='padding-bottom: 10px;') Showing results of the search: "#{chains_search}"
-      .general-page-inner-wrapper(style='padding-bottom: 20px;')
-        .general-page-buttons-wrappe(style='display:flex;')
-          if chains_page > 0
-            a.general-page-prev-button(href=`/admin?page=${chains_page-1}${chains_search ? '&search=' + chains_search : ''}`) < Previous
-          else
-            span.general-page-prev-button.general-page-prev-button-not-allowed < #{('Previous')}
-          - for (let i = 0; i < parseInt(chains_count / chains_limit) + (chains_count % chains_limit ? 1 : 0); i += 1)
-            if i != chains_page
-              a.general-each-page-button(href=`/admin?page=${i}${chains_search ? '&search=' + chains_search : ''}`)= i+1
+      .all-content-snapshot-page-wrapper
+        .all-content-snapshot-income-wrapper
+          .each-snapshot-box-wrapper
+            .snapshot-box-text Total USD
+            .snapshot-box-title 9999$
+          .each-snapshot-box-wrapper
+            .snapshot-box-text 24h Gain
+            .snapshot-box-title 9999$
+          .each-snapshot-box-wrapper
+            .snapshot-box-text Total Staking Amount
+            .snapshot-box-title 9999$
+          .each-snapshot-box-wrapper
+            .snapshot-box-text Available Balance
+            .snapshot-box-title 9999$
+        .all-content-snapshot-graphics-wrapper
+          .all-content-snapshot-graphics-chart-wrapper
+          .all-content-snapshot-graphics-filters-wrapper
+      .all-content-last-transactions-wrapper
+      .all-content-chain-list-wrapper
+        h1.general-text-title Chain List
+        if chains_search
+          span.general-page-search-text(style='padding-bottom: 10px;') Showing results of the search: "#{chains_search}"
+        .general-page-inner-wrapper(style='padding-bottom: 20px;')
+          .general-page-buttons-wrappe(style='display:flex;')
+            if chains_page > 0
+              a.general-page-prev-button(href=`/admin?page=${chains_page-1}${chains_search ? '&search=' + chains_search : ''}`) < Previous
             else
-              span.general-each-page-button.general-each-page-button-selected= i+1
-          if (chains_page + 1) * chains_limit < chains_count
-            a.general-page-next-button(href=`/admin?page=${chains_page+1}${chains_search ? '&search=' + chains_search : ''}`) Next >
-          else
-            span.general-page-next-button.general-page-next-button-not-allowed Next >
-        span.general-page-info Showing #{chains_limit} results per page.
-      each chain in chains
-        .each-chain-wrapper
-          h2.general-text-subtitle= chain.identifier
-          span.general-text-text= chain.apr
-          a.general-form-button(href='/chain/update?id=' + chain._id style='margin-left: auto;') Update
-          a.general-form-button(href='/chain/wallet?chain_id=' + chain._id style='margin-left: 20px;') Wallets
+              span.general-page-prev-button.general-page-prev-button-not-allowed < #{('Previous')}
+            - for (let i = 0; i < parseInt(chains_count / chains_limit) + (chains_count % chains_limit ? 1 : 0); i += 1)
+              if i != chains_page
+                a.general-each-page-button(href=`/admin?page=${i}${chains_search ? '&search=' + chains_search : ''}`)= i+1
+              else
+                span.general-each-page-button.general-each-page-button-selected= i+1
+            if (chains_page + 1) * chains_limit < chains_count
+              a.general-page-next-button(href=`/admin?page=${chains_page+1}${chains_search ? '&search=' + chains_search : ''}`) Next >
+            else
+              span.general-page-next-button.general-page-next-button-not-allowed Next >
+          span.general-page-info Showing #{chains_limit} results per page.
+        each chain in chains
+          .each-chain-wrapper
+            h2.general-text-subtitle= chain.identifier
+            span.general-text-text= chain.apr
+            a.general-form-button(href='/chain/update?id=' + chain._id style='margin-left: auto;') Update
+            a.general-form-button(href='/chain/wallet?chain_id=' + chain._id style='margin-left: 20px;') Wallets

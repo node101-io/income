@@ -13,27 +13,6 @@ const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 const Schema = mongoose.Schema;
 
 const SnapshotSchema = new Schema({
-  // year: {
-  //   type: Number,
-  //   required: true,
-  //   index: true,
-  //   min: 0,
-  //   max: 9999
-  // },
-  // month: { // Format: YYYY-MM
-  //   type: Number,
-  //   required: true,
-  //   index: true,
-  //   min: 0,
-  //   max: 12
-  // },
-  // day: {
-  //   type: Number,
-  //   required: true,
-  //   index: true,
-  //   min: 0,
-  //   max: 12
-  // },
   is_general: { // If true, data for entire month. Only data is spesific for a single repository
     type: Boolean,
     required: true
@@ -47,10 +26,8 @@ const SnapshotSchema = new Schema({
     required: true,
     type: Number
   },
-  new_chain_count: { // Defined only for is_total: true
-    type: Number,
-    min: 0
-  },
+  // token balance,
+  // usd balance,
   each_day_token_balance: { // Defined only for is_total: true
     type: Object
   },
@@ -69,7 +46,7 @@ const SnapshotSchema = new Schema({
   each_year_usd_balance: { // Defined only for is_total: true
     type: Number
   },
-  date : {
+  date: {
     type: Number,
     required: true
   }

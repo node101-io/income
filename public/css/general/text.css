@@ -21,3 +21,19 @@
   color: var(--text-color-two);
   margin-bottom: 10px;
 }
+
+.snapshot-box-text {
+  font-weight: 400;
+  font-size: var(--subtitle-font-size);
+  line-height: var(--subtitle-line-heigth);
+  color: var(--text-color-two);
+  margin-bottom: 10px;
+}
+
+.snapshot-box-title {
+  font-weight: 400;
+  font-size: var(--subtitle-font-size);
+  line-height: var(--subtitle-line-heigth);
+  color: var(--text-color-two);
+  margin-bottom: 10px;
+}

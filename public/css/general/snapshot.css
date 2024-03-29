@@ -1,0 +1,20 @@
+:root {
+  --each-snapshot-box-wrapper-width: calc(100% / 4);
+  --each-snapshot-box-wrapper-height: 110px;
+  --each-snapshot-box-wrapper-radius: 5px;
+}
+.all-content-snapshot-income-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+.each-snapshot-box-wrapper {
+  width: var(--each-snapshot-box-wrapper-width);
+  min-width: 200px;
+  height: var(--each-snapshot-box-wrapper-height);
+  min-height: var(--each-snapshot-box-wrapper-height);
+  margin: 10px;
+  background-color: var(--box-color);
+  padding: 20px;
+  border-radius: var(--each-snapshot-box-wrapper-radius);
+}

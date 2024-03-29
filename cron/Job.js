@@ -12,6 +12,14 @@ const Job = {
         console.log(`Price updated ${Date.now()}`);
       });
     });
+    croner.Cron(process.env.SCHEDULE || '*/5 * * * *' , () => {
+      Chain._updateChainPrices((err) => {
+        if (err)
+          return console.log(err);
+
+        console.log(`Price updated ${Date.now()}`);
+      });
+    });
     callback(null);
   }
 };
