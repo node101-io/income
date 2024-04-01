@@ -12,7 +12,7 @@ module.exports = (req, res) => {
         includes: {
           external: {
             css: ['form', 'general', 'page', 'text', 'navigation', 'header', 'snapshot'],
-            js: ['page', 'serverRequest']
+            js: ['page', 'serverRequest', 'chart.js']
           }
         },
         chains_count: count,
