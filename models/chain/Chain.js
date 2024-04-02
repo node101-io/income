@@ -71,7 +71,8 @@ ChainSchema.statics.createChain = function (data, callback) { // Admin'in chain'
       identifier: data.identifier.trim(),
       apr: data.apr,
       token: token,
-      price: price
+      price: price,
+      date: Date.now()
     });
 
     newChain.save((err, chain) => {

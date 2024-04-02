@@ -13,7 +13,15 @@ const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 const Schema = mongoose.Schema;
 
 const SnapshotSchema = new Schema({
-  is_general: { // If true, data for entire month. Only data is spesific for a single repository
+  is_day: { // If true, data for entire day
+    type: Boolean,
+    required: true
+  },
+  is_month: { // If true, data for entire month
+    type: Boolean,
+    required: true
+  },
+  is_year: { // If true, data for entire year.
     type: Boolean,
     required: true
   },
@@ -26,8 +34,9 @@ const SnapshotSchema = new Schema({
     required: true,
     type: Number
   },
-  // token balance,
-  // usd balance,
+  current_token_balance: { // Only If is_general is false
+    type: Object
+  },
   each_day_token_balance: { // Defined only for is_total: true
     type: Object
   },
@@ -36,6 +45,9 @@ const SnapshotSchema = new Schema({
   },
   each_year_token_balance: { // Defined only for is_total: true
     type: Object
+  },
+  current_usd_balance: { // Only If is_general is false
+    type: Number
   },
   each_day_usd_balance: { // Defined only for is_total: true
     type: Number
@@ -75,7 +87,7 @@ WalletSchema.statics.findSnapshotByIdAndFormat = function (id, callback) { // Wa
     Snapshot.findWalletById(id, (err, snapshot) => {
       if (err) return callback(err);
 
-      getWallet(snapshot, (err, snapshot) => {
+      getSnapshot(snapshot, (err, snapshot) => {
         if (err) return callback(err);
 
         return callback(null, snapshot);
@@ -95,6 +107,22 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
   if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()))
     return callback('bad_request');
 
+  const newSnapshot = new Snapshot({
+    is_day: data.is_day,
+    is_month: data.is_month,
+    is_year: data.is_year,
+    chain_id: data.chain_id,
+    full_time_chain_count: data.full_time_chain_count,
+    current_token_balance: data.current_token_balance,
+    current_usd_balance: data.current_usd_balance,
+    each_day_token_balance: data.each_day_token_balance,
+    each_day_usd_balance: data.each_day_usd_balance,
+    each_month_token_balance: data.each_month_token_balance,
+    each_month_usd_balance: data.current_usd_balance,
+    each_year_token_balance: data.each_year_token_balance,
+    each_year_usd_balance: data.each_year_usd_balance,
+    date: Date.now()
+  })
 };
 
 SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) { // Wallet arama, UI'da kullanılacak.
