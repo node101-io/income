@@ -3,8 +3,10 @@ module.exports = (req, res) => {
     page: 'index/login/index',
     title: 'Login',
     includes: {
+      external: {
         css: ['form', 'general', 'page', 'text'],
         js: []
+      }
     }
   });
 };

@@ -2,19 +2,19 @@ const async = require('async');
 const mongoose = require('mongoose');
 const validator = require('validator');
 
-const getChain = require('./functions/getChain'); // Hangi field'ları kullanıcı front'ta görmeli yaklaşımı ile yazılacak
-const getPriceFromAPI = require('./functions/getPriceFromAPI'); // API'a istek atıp price çekeceksin, burasını diğer repo'larda görebilirsin
+const getChain = require('./functions/getChain');
+const getPriceFromAPI = require('./functions/getPriceFromAPI');
 
-const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000; // duplicated unique field ne kendi kendine çözmeni bekliyorum onu anlatmayacağım :)
-const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3; // Hack yemeyelim diye, bunu da düşünüp anla
+const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000;
+const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3;
 const MAX_DOCUMENT_COUNT_PER_QUERY = 1e2;
-const PRICE_UPDATE_INTERVAL = 1 * 60 * 1e3; // Price'ın kaç sn'de bir güncelleneceği, cron job için lazım
+const PRICE_UPDATE_INTERVAL = 1 * 60 * 1e3;
 const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 
 const Schema = mongoose.Schema;
 
 const ChainSchema = new Schema({
-  identifier: { // Bu chain'in identifier'ı, sallamıyoruz her chain'in var zaten unique. Coin adı gibi düşün ama birebir aynı değil
+  identifier: {
     type: String,
     required: true,
     unique: true,
@@ -22,7 +22,7 @@ const ChainSchema = new Schema({
     minlength: 1,
     maxlength: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  apr: { // Normal şartlarda API'dan çekmek lazım, ama şimdilik admin'ler manuel girecek
+  apr: {
     type: Number,
     required: true,
     min: 0,
@@ -35,30 +35,36 @@ const ChainSchema = new Schema({
     trim: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  price: { // API'dan çekilecek fonksiyon ile, cron kullanarak düzenli (her dk'da bir mesela) güncellenmeli
+  price: {
     type: Number,
     default: null,
     min: 0
   },
-  last_price_update_time: { // Price'ın en son ne zaman güncellendiği, cron için lazım. UNIX timestamp olarak tutulacak, Number yap Date değil sebebini anlatıcam
+  last_price_update_time: {
     type: Number,
     default: null,
     min: 0
   },
-  total_value: { // Coin olarak toplam bu chain'de ne kadar var, wallet modelleri update atacak
+  total_value: {
     type: Number,
     default: 0,
     min: 0
   }
 });
 
-ChainSchema.statics.createChain = function (data, callback) { // Admin'in chain'i yaratması
+ChainSchema.statics.createChain = function (data, callback) {
   const Chain = this;
 
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
   if (!data.identifier || typeof data.identifier != 'string' || !data.identifier.trim().length || data.identifier.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
+    return callback('bad_request');
+
+  if (!data.token || typeof data.token != 'string' || !data.token.trim().length || data.token.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
+    return callback('bad_request');
+
+  if (!data.apr || isNaN(Number(data.apr)) || Number(data.apr) < 0 || Number(data.apr) > 100)
     return callback('bad_request');
 
   const token = data.token.trim();
@@ -86,7 +92,7 @@ ChainSchema.statics.createChain = function (data, callback) { // Admin'in chain'
   });
 };
 
-ChainSchema.statics.findChainById = function (id, callback) { // Chain'in id'si ile bulunması, bunu diğer repo'lardan bakabilirsin. Hassas bir nokta var, indexing hakkında. Anlatacağım
+ChainSchema.statics.findChainById = function (id, callback) {
   const Chain = this;
 
   if (!id || !validator.isMongoId(id.toString()))
@@ -100,8 +106,9 @@ ChainSchema.statics.findChainById = function (id, callback) { // Chain'in id'si 
   });
 };
 
-ChainSchema.statics.findChainByIdAndFormat = function (id, callback) { // Chain'in id'si ile bulunması ve front'a gönderilmesi için formatlanması
+ChainSchema.statics.findChainByIdAndFormat = function (id, callback) {
   const Chain = this;
+
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
@@ -116,11 +123,12 @@ ChainSchema.statics.findChainByIdAndFormat = function (id, callback) { // Chain'
   });
 };
 
-ChainSchema.statics.findChainByIdAndUpdate = function (id, data, callback) { // Admin chain güncelleme
+ChainSchema.statics.findChainByIdAndUpdate = function (id, data, callback) {
   const Chain = this;
 
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
+
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
@@ -143,7 +151,7 @@ ChainSchema.statics.findChainByIdAndUpdate = function (id, data, callback) { // 
   });
 };
 
-ChainSchema.statics.findChainsByFilters = function (data, callback) { // Chain arama, wallet yaratırken buraya istek atacak. Text search yazmanı istiyorum identifier üzerine. Alfabetik sıralama yapılacak. Sonuçları limitle
+ChainSchema.statics.findChainsByFilters = function (data, callback) {
   const Chain = this;
 
   if (!data || typeof data != 'object') {
@@ -248,22 +256,9 @@ ChainSchema.statics.findChainCountByFilters = function (data, callback) {
       .then(count => callback(null, count))
       .catch(_ => callback('database_error'));
   };
-  // if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
-  //   search = data.search.trim();
-  //   filters.$or = [
-  //     { identifier: { $regex: data.search.trim(), $options: 'i' } },
-  //     { token: { $regex: data.search.trim(), $options: 'i' } }
-  //   ];
-  // }
-
-  // Chain
-  //   .find(filters)
-  //   .countDocuments()
-  //   .then(count => callback(null, count))
-  //   .catch(_ => callback('database_error'));
 }
 
-ChainSchema.statics._updateChainPrices = function (callback) { // Private fonksiyon, cron job çağıracak her 5 sn. async lib'i ile teker teker update atmalısın
+ChainSchema.statics._updateChainPrices = function (callback) {
   const Chain = this;
 
   Chain.findChainsByFilters({}, (err, data) => {
@@ -292,10 +287,10 @@ ChainSchema.statics._updateChainPrices = function (callback) { // Private fonksi
   });
 };
 
-ChainSchema.statics._findChainByIdAndIncreaseTotalValue = function (id, value, callback) { // Wallet çağırabilir sadece, anlattım :)
+ChainSchema.statics._findChainByIdAndIncreaseTotalValue = function (id, value, callback) {
 };
 
-ChainSchema.statics._findChainByIdAndDelete = function (id, callback) { // Wallet çağırabilir sadece, anlatıcam
+ChainSchema.statics._findChainByIdAndDelete = function (id, callback) {
   const Chain = this;
 
   if (!id || !validator.isMongoId(id.toString()))

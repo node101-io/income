@@ -40,7 +40,6 @@ if (cluster.isMaster) {
   const indexRouteController = require('./routes/indexRoute');
   const chainRouteController = require('./routes/chainRoute');
   const loginRouteController = require('./routes/loginRoute');
-  // const walletRouteController = require('./routes/walletRoute');
 
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'pug');
