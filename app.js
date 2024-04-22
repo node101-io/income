@@ -39,6 +39,7 @@ if (cluster.isMaster) {
 
   const indexRouteController = require('./routes/indexRoute');
   const chainRouteController = require('./routes/chainRoute');
+  const loginRouteController = require('./routes/loginRoute');
   // const walletRouteController = require('./routes/walletRoute');
 
   app.set('views', path.join(__dirname, 'views'));
@@ -84,6 +85,7 @@ if (cluster.isMaster) {
   });
 
   app.use('/', indexRouteController);
+  app.use('/login', loginRouteController);
   app.use('/chain', chainRouteController);
 
   server.listen(PORT, () => {
