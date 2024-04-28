@@ -7,7 +7,7 @@ module.exports = (wallet, callback) => {
     public_key: wallet.public_key,
     name: wallet.name,
     chain_id: wallet.chain_id,
-    reward_comission: wallet.reward_comission,
+    reward_commission: wallet.reward_commission,
     self_stake_value: wallet.self_stake_value,
     stake_value: wallet.stake_value,
     available_balance: wallet.available_balance

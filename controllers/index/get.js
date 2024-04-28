@@ -6,21 +6,25 @@ module.exports = (req, res) => {
 
     Chain.findChainsByFilters(req.query, (err, data) => {
       if (err) return res.redirect('/error?message=' + err);
-      return res.render('index/index', {
-        page: 'index/index',
-        title: 'Dashboard',
-        includes: {
-          external: {
-            css: ['form', 'general', 'page', 'text', 'navigation', 'header', 'snapshot'],
-            js: ['page', 'serverRequest', 'chart.js']
-          }
-        },
-        chains_count: count,
-        chains: data.chains,
-        chains_search: data.search,
-        chains_page: data.page,
-        chains_limit: data.limit
+
+      Chain.calculateTotalValueOfAllChains((err, totalValueOfAllChains) => {
+        return res.render('index/index', {
+          page: 'index/index',
+          title: 'Dashboard',
+          includes: {
+            external: {
+              css: ['form', 'general', 'page', 'text', 'navigation', 'header', 'snapshot'],
+              js: ['page', 'serverRequest', 'chart.js']
+            }
+          },
+          chains_count: count,
+          chains: data.chains,
+          chains_search: data.search,
+          chains_page: data.page,
+          chains_limit: data.limit,
+          chains_total_value: totalValueOfAllChains.toFixed(2)
+        });
       });
     });
-  })
+  });
 };

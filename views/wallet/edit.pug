@@ -6,7 +6,10 @@ block content
       h1.general-text-title Edit Wallet - #{wallet.name}
       input.general-form-input#wallet-name(type='text' name='Name' placeholder='Wallet Name' value=wallet.name required)
       input.general-form-input#wallet-type(type='text' name='Type' placeholder='Wallet Type' value=wallet.type required)
-      input.general-form-input#wallet-reward-comission(type='text' name='Reward Comission' placeholder='Reward Comission' value=wallet.reward_comission required)
+      input.general-form-input#wallet-reward_commission(type='text' name='Reward Commission' placeholder='Reward Commission' value=wallet.reward_commission required)
+      input.general-form-input#wallet-self-stake-value(type='text' name='Self Stake Value' placeholder='Self Stake Value' value=wallet.self_stake_value required)
+      input.general-form-input#wallet-stake-value(type='text' name='Stake Value' placeholder='Stake Value' value=wallet.stake_value required)
+      input.general-form-input#wallet-available-balance(type='text' name='Available Balance' placeholder='Available Balance' value=wallet.available_balance required)
       .general-form-button-wrapper
         a.general-form-button(href='/') Back
         button.general-form-button#wallet-update-button(style='margin-left: auto; color: var(--second-color)') Edit

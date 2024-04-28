@@ -5,6 +5,7 @@ const validator = require('validator');
 const Chain = require('../chain/Chain');
 
 const getWallet = require('./functions/getWallet');
+const getUpdatedWalletValues = require('./functions/getUpdateWalletValues');
 
 const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000;
 const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3;
@@ -39,7 +40,7 @@ const WalletSchema = new Schema({
     default: 'normal',
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  reward_comission: {
+  reward_commission: {
     type: Number,
     trim: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
@@ -115,7 +116,7 @@ WalletSchema.statics.createWallet = function (data, callback) {
     name: data.name.trim(),
     chain_id: data.chain_id.trim(),
     type: data.type,
-    reward_comission: data.reward_comission,
+    reward_commission: data.reward_commission,
     self_stake_value: data.self_stake_value,
     stake_value: data.stake_value,
     available_balance: data.available_balance,
@@ -141,13 +142,16 @@ WalletSchema.statics.findWalletByIdAndUpdate = function (id, data, callback) {
     return callback('bad_request');
   if (!data || typeof data != 'object')
     return callback('bad_request');
-    if (!data.type || typeof data.type != 'string' || !data.type.trim().length || data.type.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
-    return callback('bad_request');
+  // if (!data.type || typeof data.type != 'string' || !data.type.trim().length || data.type.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
+  //   return callback('bad_request');
 
   Wallet.findByIdAndUpdate(id, { $set: {
     name: data.name,
     type: data.type,
-    reward_comission: data.reward_comission
+    reward_commission: data.reward_commission,
+    self_stake_value: data.self_stake_value,
+    stake_value: data.stake_value,
+    available_balance: data.available_balance
   }}, { new: true }, (err, wallet) => {
     if (err) return callback('database_error');
     if (!wallet) return callback('document_not_found');
@@ -227,22 +231,60 @@ WalletSchema.statics.findChainByIdAndDelete = function (chain_id, callback) {
   });
 };
 
-WalletSchema.statics._updateWalletValues = function (callback) { // Private fonksiyon, cron job çağıracak her sn. async lib'i ile teker teker update atmalısın
-//bütün walletları alacaksın bunun için filter methodunu kullanabilirsin
-//walletların hepsini alınca wallet in wallets çağırıp async bir şekilde her birinin available balance'ını updateleyeceksin
+WalletSchema.statics._updateWalletValues = function (callback) {
+  const Wallet = this;
 
-  // const Wallet = this;
-  // Wallet.findWalletsByFilters({}, (err, wallets)=>{
-  //   if (err) return callback('bad_request');
-  //   if (!wallets) return callback('document_not_found');
+  Wallet.findWalletsByFilters({}, (err, wallets) => {
+    if (err) return callback('bad_request');
+    if (!wallets || wallets.length === 0) return callback('document_not_found');
 
-  //   async.timesSeries(
-  //     wallets.length,
-  //     (time, next) => Wallet.findWalletByIdAndUpdate(wallets[time]._id, , (err, wallet) => next(err, wallet)),
-  //     (err, wallets) => callback(err, wallets)
-  //   );
-  // })
+    async.timesSeries(
+      wallets.length,
+      (index, next) => {
+        const wallet = wallets[index];
 
+        const walletUpdatedValues = {
+          reward_commission: getUpdatedWalletValues.calculateRewardCommission(wallet),
+          self_stake_value: getUpdatedWalletValues.calculateSelfStakeValue(wallet),
+          stake_value: getUpdatedWalletValues.calculateStakeValue(wallet),
+          available_balance: getUpdatedWalletValues.calculateAvailableBalance(wallet)
+        };
+
+        const walletUpdatedTotalValue = {
+          total_value : getUpdatedWalletValues.calculateTotalValue(wallet)
+        }
+
+        Wallet.findWalletByIdAndUpdate(wallet._id, walletUpdatedValues, (err, updatedWallet) => {
+          if (err) return callback('bad_request');
+
+          next(err, updatedWallet);
+        });
+        Chain._findChainByIdAndIncreaseTotalValue(wallet.chain_id, walletUpdatedTotalValue, (err, updatedChainTotalValue) => {
+          if (err) return callback('bad_request');
+
+          return callback(null);
+        })
+      },
+      (err, updatedWallets) => callback(err, updatedWallets)
+    );
+  });
 };
+
+// WalletSchema.statics._updateWalletValues = function (callback) { // Private fonksiyon, cron job çağıracak her sn. async lib'i ile teker teker update atmalısın
+// //bütün walletları alacaksın bunun için filter methodunu kullanabilirsin
+// //walletların hepsini alınca wallet in wallets çağırıp async bir şekilde her birinin available balance'ını updateleyeceksin
+
+//   const Wallet = this;
+//   Wallet.findWalletsByFilters({}, (err, wallets)=>{
+//     if (err) return callback('bad_request');
+//     if (!wallets) return callback('document_not_found');
+
+//     async.timesSeries(
+//       wallets.length,
+//       (time, next) => Wallet.findWalletByIdAndUpdate(wallets[time]._id, , (err, wallet) => next(err, wallet)),
+//       (err, wallets) => callback(err, wallets)
+//     );
+//   })
+// };
 
 module.exports = mongoose.model('Wallet', WalletSchema);

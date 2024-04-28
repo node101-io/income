@@ -164,7 +164,6 @@ ChainSchema.statics.findChainsByFilters = function (data, callback) {
   const skip = page * limit;
 
   if (!data.search || typeof data.search != 'string' || !data.search.trim().length) {
-
     Chain.find(filters)
       .sort({
         is_completed: 1,
@@ -205,7 +204,7 @@ ChainSchema.statics.findChainsByFilters = function (data, callback) {
       .skip(skip)
       .then(chains => async.timesSeries(
         chains.length,
-        (time, next) => Chain.findChainByIdAndFormat(chains[ time ]._id, (err, chain) => next(err, chain)),
+        (time, next) => Chain.findChainByIdAndFormat(chains[time]._id, (err, chain) => next(err, chain)),
         (err, chains) => {
           if (err) return callback(err);
           return callback(null, {
@@ -271,24 +270,67 @@ ChainSchema.statics._updateChainPrices = function (callback) {
       chains.length,
       (time, next) => {
         getPriceFromAPI(chains[time].token, (err, price) => {
-          if (err) return callback(err);
+          if (err) return next(err);
 
           Chain.findChainByIdAndUpdate(chains[time]._id, {
             price: price,
             last_price_update_time: Date.now()
           }, (err, chain) => {
-            if (err) return callback(err);
+            if (err) return next(err);
 
-            return callback(null);
+            next();
           })
         });
       },
+      (err) => { //burayı yunus'a sor
+        if (err) return callback('bad_request');
+
+        callback(null);
+      }
     )
   });
 };
 
-ChainSchema.statics._findChainByIdAndIncreaseTotalValue = function (id, value, callback) {
+ChainSchema.statics._findChainByIdAndIncreaseTotalValue = function (id, value, callback) { //Wallet çağırabilir sadece
+  const Chain = this;
+
+  if (!id || !validator.isMongoId(id.toString()))
+    return callback('bad_request');
+
+  Chain.findChainByIdAndUpdate(mongoose.Types.ObjectId(id.toString()), value, (err, chain) => {
+    if (err) return callback(err);
+
+    if(!chain) return callback('document_not_found');
+    return callback(null, chain);
+  });
 };
+
+ChainSchema.statics.calculateTotalValueOfAllChains = function (callback) {
+  const Chain = this;
+
+  let chainsTotalValue = 0;
+
+  Chain.findChainsByFilters({}, (err, data) => {
+    if (err) return callback('database_error');
+    if (!data) return callback('document_not_found');
+
+    const chains = data.chains;
+
+    async.timesSeries(
+      chains.length,
+      (time, next) => {
+        chainsTotalValue += chains[time].total_value;
+        next();
+      },
+      (err) => {
+        if (err) return callback('bad_request');
+
+        callback(null, chainsTotalValue);
+      }
+    );
+  });
+};
+
 
 ChainSchema.statics._findChainByIdAndDelete = function (id, callback) {
   const Chain = this;

@@ -31,7 +31,7 @@ const SnapshotSchema = new Schema({
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
   full_time_chain_count: { // Defined only for is_total: true
-    required: true,
+    //required: true,
     type: Number
   },
   current_token_balance: { // Only If is_general is false
@@ -78,7 +78,7 @@ SnapshotSchema.statics.findSnapshotById = function (id, callback) {
   })
 }
 
-WalletSchema.statics.findSnapshotByIdAndFormat = function (id, callback) { // Wallet'in id'si ile bulunması ve front'a gönderilmesi için formatlanması
+SnapshotSchema.statics.findSnapshotByIdAndFormat = function (id, callback) {
   const Snapshot = this;
 
   if (!id || !validator.isMongoId(id.toString()))
@@ -101,11 +101,8 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
-  if(!data.is_general || typeof data.is_general != 'boolean')
-    return callback('bad_request');
-
-  if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()))
-    return callback('bad_request');
+  // if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()))
+  //   return callback('bad_request');
 
   const newSnapshot = new Snapshot({
     is_day: data.is_day,
@@ -118,14 +115,23 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
     each_day_token_balance: data.each_day_token_balance,
     each_day_usd_balance: data.each_day_usd_balance,
     each_month_token_balance: data.each_month_token_balance,
-    each_month_usd_balance: data.current_usd_balance,
+    each_month_usd_balance: data.each_month_usd_balance,
     each_year_token_balance: data.each_year_token_balance,
     each_year_usd_balance: data.each_year_usd_balance,
     date: Date.now()
-  })
+  });
+
+  newSnapshot.save((err, snapshot) => {
+    if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
+      return callback('duplicated_unique_field');
+    if (err)
+      return callback('database_error');
+
+    return callback(null, snapshot);
+  });
 };
 
-SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) { // Wallet arama, UI'da kullanılacak.
+SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) {
   const Snapshot = this;
 
   const filters = {};
@@ -149,7 +155,7 @@ SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) { // W
     });
 };
 
-SnapshotSchema.statics.findSnapshotsByIdAndDelete = function (id, callback) { // Private değil, direk silebilir
+SnapshotSchema.statics.findSnapshotsByIdAndDelete = function (id, callback) {
   const Snapshot = this;
 
   if (!id || !validator.isMongoId(id.toString()))
