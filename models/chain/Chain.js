@@ -324,7 +324,7 @@ ChainSchema.statics.calculateTotalValueOfAllChains = function (callback) {
       },
       (err) => {
         if (err) return callback('bad_request');
-
+        console.log(chainsTotalValue);
         callback(null, chainsTotalValue);
       }
     );

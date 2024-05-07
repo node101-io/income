@@ -22,9 +22,10 @@ const Job = {
       });
     });
 
-    croner.Cron(process.env.SCHEDULE || '*/15 * * * *' , () => {
+    croner.Cron(process.env.SCHEDULE || '*/1 * * * *' , () => {
       Chain.calculateTotalValueOfAllChains((err, chainsTotalValue) => {
         const data = {
+          is_hour: false,
           is_day: false,
           is_month: false,
           is_year: false,
@@ -33,27 +34,62 @@ const Job = {
 
         Snapshot.createSnapshot(data , (err, snapshot) => {
           if (err)
-          return console.log(err);
+            return console.log(err);
 
           console.log("snapshot created")
         });
       });
-      const oneHourAgo = Date.now() - (60 * 60 * 1000);
-      Snapshot.findSnapshotsByFilters({ date: { $gte: oneHourAgo }} , (err, snapshot) => {
-        if(err)
-        return console.log(err);
 
-        if(snapshot){
+      // const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      const oneHourAgo = Date.now() - (60 * 4 * 1000);
+      const hourlyData = {
+        date: { $lte: oneHourAgo },
+        is_hour: false,
+        is_day: false,
+        is_month: false,
+        is_year: false,
+      };
 
-        }
-
+      Snapshot.findSnapshotsByFiltersAndMerge(hourlyData, (err, snapshot) => {
+        if (err)
+        return console.log(err)
+      if (snapshot)
+      console.log('hour snapshot created');
       });
-      // date'i kontrol et eğer date - current day > 60 dakika
-        //create snapshot with  is_hour: true
-      // date'i kontrol et eğer date - current day > 24 saat
-        //create snapshot with  is_day: true
-      // date'i kontrol et eğer date - current day > 30 gün
-        //create snapshot with  is_month: true
+
+      // const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+      const oneDayAgo = Date.now() - (24 * 60 * 1000);
+      const dailyData = {
+        date: { $gte: oneDayAgo },
+        is_hour: true,
+        is_day: false,
+        is_month: false,
+        is_year: false,
+      };
+
+      // Snapshot.findSnapshotsByFiltersAndMerge(dailyData, (err, snapshot) => {
+      //   if (err)
+      //   return console.log(err)
+      // if (snapshot)
+      // console.log('hour snapshot created');
+      // });
+
+      // const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      const oneMonthAgo = Date.now() - (24 * 60 * 10 * 1000);
+      const monthlyData = {
+        date: { $gte: oneMonthAgo },
+        is_hour: true,
+        is_day: false,
+        is_month: false,
+        is_year: false,
+      };
+
+      // Snapshot.findSnapshotsByFiltersAndMerge(monthlyData, (err, snapshot) => {
+      //   if (err)
+      //   return console.log(err)
+      // if (snapshot)
+      // console.log('hour snapshot created');
+      // });
     });
     callback(null);
   }

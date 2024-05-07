@@ -13,15 +13,19 @@ const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 const Schema = mongoose.Schema;
 
 const SnapshotSchema = new Schema({
-  is_day: { // If true, data for entire day
+  is_hour: {
     type: Boolean,
     required: true
   },
-  is_month: { // If true, data for entire month
+  is_day: {
     type: Boolean,
     required: true
   },
-  is_year: { // If true, data for entire year.
+  is_month: {
+    type: Boolean,
+    required: true
+  },
+  is_year: {
     type: Boolean,
     required: true
   },
@@ -30,32 +34,32 @@ const SnapshotSchema = new Schema({
     trim: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  full_time_chain_count: { // Defined only for is_total: true
-    //required: true,
+  // full_time_chain_count: {
+  //   //required: true,
+  //   type: Number
+  // },
+  current_token_balance: {
     type: Number
   },
-  current_token_balance: { // Only If is_general is false
-    type: Object
-  },
-  each_day_token_balance: { // Defined only for is_total: true
-    type: Object
-  },
-  each_month_token_balance: { // Defined only for is_total: true
-    type: Object
-  },
-  each_year_token_balance: { // Defined only for is_total: true
-    type: Object
-  },
-  current_usd_balance: { // Only If is_general is false
+  each_day_token_balance: {
     type: Number
   },
-  each_day_usd_balance: { // Defined only for is_total: true
+  each_month_token_balance: {
     type: Number
   },
-  each_month_usd_balance: { // Defined only for is_total: true
+  each_year_token_balance: {
     type: Number
   },
-  each_year_usd_balance: { // Defined only for is_total: true
+  current_usd_balance: {
+    type: Number
+  },
+  each_day_usd_balance: {
+    type: Number
+  },
+  each_month_usd_balance: {
+    type: Number
+  },
+  each_year_usd_balance: {
     type: Number
   },
   date: {
@@ -101,15 +105,13 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
-  // if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()))
-  //   return callback('bad_request');
-
   const newSnapshot = new Snapshot({
+    is_hour: data.is_hour,
     is_day: data.is_day,
     is_month: data.is_month,
     is_year: data.is_year,
     chain_id: data.chain_id,
-    full_time_chain_count: data.full_time_chain_count,
+    //full_time_chain_count: data.full_time_chain_count,
     current_token_balance: data.current_token_balance,
     current_usd_balance: data.current_usd_balance,
     each_day_token_balance: data.each_day_token_balance,
@@ -124,9 +126,10 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
   newSnapshot.save((err, snapshot) => {
     if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
       return callback('duplicated_unique_field');
-    if (err)
+    if (err) {
+      console.log(err)
       return callback('database_error');
-
+    };
     return callback(null, snapshot);
   });
 };
@@ -134,19 +137,19 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
 SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) {
   const Snapshot = this;
 
-  const filters = {};
+  let filters = {};
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
   if (data.chain_id && validator.isMongoId(data.chain_id.toString()))
     filters.chain_id = data.chain_id.toString();
 
-  if (data.search && typeof data.search == 'string' && data.search.trim().length && data.search.trim().length < MAX_DATABASE_TEXT_FIELD_LENGTH){
-    filters.$or = [
-      { public_key: { $regex: data.search.trim()}}
-    ];
+  if (data.date && typeof data.date === 'object') {
+    filters = data;
   }
-  Snapshot.find(filters)
+  Snapshot
+    .find(filters)
+    .sort({ order: 1})
     .exec((err, snapshots) => {
       if (err) {
         return callback('database_error');
@@ -169,4 +172,95 @@ SnapshotSchema.statics.findSnapshotsByIdAndDelete = function (id, callback) {
   })
 };
 
+SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback) {
+  const Snapshot = this;
+
+  if (!data || typeof data != 'object')
+    return callback('bad_request');
+
+  Snapshot.findSnapshotsByFilters(data, (err, snapshot) => {
+    if (err) return callback(err);
+
+    if (snapshots && snapshots.length > 0) {
+      console.log(snapshots);
+      let mergeData;
+
+      if (!data.is_hour && !data.is_day && !data.is_month && !data.is_year) {
+        mergeData = {
+          is_hour: true,
+          is_day: false,
+          is_month: false,
+          is_year: false,
+          current_token_balance: snapshots[0].current_token_balance,
+          current_usd_balance: snapshots[0].current_usd_balance
+        };
+      } else if (data.is_hour && !data.is_day && !data.is_month && !data.is_year) {
+        mergeData = {
+          is_hour: false,
+          is_day: true,
+          is_month: false,
+          is_year: false,
+          current_token_balance: snapshots[0].current_token_balance,
+          current_usd_balance: snapshots[0].current_usd_balance
+        };
+      } else if (!data.is_hour && data.is_day && !data.is_month && !data.is_year) {
+        mergeData = {
+          is_hour: false,
+          is_day: false,
+          is_month: true,
+          is_year: false,
+          current_token_balance: snapshots[0].current_token_balance,
+          current_usd_balance: snapshots[0].current_usd_balance
+        };
+      } else if (!data.is_hour && !data.is_day && data.is_month && !data.is_year) {
+        mergeData = {
+          is_hour: false,
+          is_day: false,
+          is_month: false,
+          is_year: true,
+          current_token_balance: snapshots[0].current_token_balance,
+          current_usd_balance: snapshots[0].current_usd_balance
+        };
+      }
+
+      Snapshot.createSnapshot(mergeData, (err, snapshot) => {
+        if (err) return callback(err);
+
+        async.eachSeries(snapshots, (snapshot, next) => {
+          Snapshot.findSnapshotsByIdAndDelete(snapshot._id, (err) => {
+            if (err) {
+              console.error('document_not_found', err);
+              return next(err);
+            }
+            console.log("deleted");
+            next(); // Move to the next iteration
+          });
+        }, (err) => {
+          if (err) {
+            console.error('document_not_found', err);
+            return callback(err);
+          }
+
+          return callback(null, snapshot);
+        });
+      });
+    } else {
+      return callback(null, null);
+    }
+  });
+};
+
+
 module.exports = mongoose.model('Snapshot', SnapshotSchema);
+
+// let totalTokenBalance = 0;
+// let totalUsdBalance = 0;
+
+// snapshots.forEach(snapshot => {
+//   totalTokenBalance += snapshot.current_token_balance;
+//   totalUsdBalance += snapshot.current_usd_balance;
+// });
+
+// // Calculate average USD balance
+// const averageUsdBalance = totalUsdBalance / snapshots.length;
+// const averageTokenBalance = totalTokenBalance / snapshots.length;
