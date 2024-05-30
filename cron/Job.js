@@ -67,12 +67,12 @@ const Job = {
         is_year: false
       };
 
-      // Snapshot.findSnapshotsByFiltersAndMerge(dailyData, (err, snapshot) => {
-      //   if (err)
-      //   return console.log(err)
-      // if (snapshot)
-      // console.log('hour snapshot created');
-      // });
+      Snapshot.findSnapshotsByFiltersAndMerge(dailyData, (err, snapshot) => {
+        if (err)
+        return console.log(err)
+      if (snapshot)
+      console.log('daily snapshot created');
+      });
 
       // const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
       const oneMonthAgo = Date.now() - (24 * 60 * 10 * 1000);
@@ -84,12 +84,12 @@ const Job = {
         is_year: false
       };
 
-      // Snapshot.findSnapshotsByFiltersAndMerge(monthlyData, (err, snapshot) => {
-      //   if (err)
-      //   return console.log(err)
-      // if (snapshot)
-      // console.log('hour snapshot created');
-      // });
+      Snapshot.findSnapshotsByFiltersAndMerge(monthlyData, (err, snapshot) => {
+        if (err)
+        return console.log(err)
+      if (snapshot)
+      console.log('monthly snapshot created');
+      });
     });
     callback(null);
   }
