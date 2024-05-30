@@ -178,7 +178,7 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
   if (!data || typeof data != 'object')
     return callback('bad_request');
 
-  Snapshot.findSnapshotsByFilters(data, (err, snapshot) => {
+  Snapshot.findSnapshotsByFilters(data, (err, snapshots) => {
     if (err) return callback(err);
 
     if (snapshots && snapshots.length > 0) {
@@ -223,25 +223,50 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
         };
       }
 
-      Snapshot.createSnapshot(mergeData, (err, snapshot) => {
+      Snapshot.createSnapshot(mergeData, (err, newSnapshot) => {
         if (err) return callback(err);
+        console.log('************');
+        console.log(newSnapshot);
+        console.log('************');
 
-        async.eachSeries(snapshots, (snapshot, next) => {
-          Snapshot.findSnapshotsByIdAndDelete(snapshot._id, (err) => {
-            if (err) {
-              console.error('document_not_found', err);
-              return next(err);
-            }
-            console.log("deleted");
-            next(); // Move to the next iteration
-          });
-        }, (err) => {
-          if (err) {
-            console.error('document_not_found', err);
-            return callback(err);
+        const filterData = {
+          is_hour: data.is_hour,
+          is_day: data.is_day,
+          is_month: data.is_month,
+          is_year: data.is_year,
+          date: { $lte: Date.now() - (1 * 60 * 1000) } // dont forget to change it 15
+        };
+        console.log(filterData);
+
+        Snapshot.findSnapshotsByFilters(filterData, (err, snapshotsToDelete) => {
+          if (err) return callback(err);
+
+          if (snapshotsToDelete && snapshotsToDelete.length > 0) {
+            async.eachSeries(
+              snapshotsToDelete,
+              (snapshot, next) => {
+                console.log(snapshot);
+                Snapshot.findByIdAndDelete(snapshot._id, (err) => {
+                  if (err) {
+                    console.error('document_not_found', err);
+                    return next(err);
+                  }
+                  console.log("deleted");
+                  next(); // Move to the next iteration
+                });
+              },
+              (err) => {
+                if (err) {
+                  console.error('document_not_found', err);
+                  return callback(err);
+                }
+
+                return callback(null, newSnapshot);
+              }
+            );
+          } else {
+            return callback(null, newSnapshot);
           }
-
-          return callback(null, snapshot);
         });
       });
     } else {
@@ -249,6 +274,28 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
     }
   });
 };
+
+// Snapshot.createSnapshot(mergeData, (err, snapshot) => {
+//   if (err) return callback(err);
+
+//   async.eachSeries(snapshots, (snapshot, next) => {
+//     Snapshot.findSnapshotsByIdAndDelete(snapshot._id, (err) => {
+//       if (err) {
+//         console.error('document_not_found', err);
+//         return next(err);
+//       }
+//       console.log("deleted");
+//       next(); // Move to the next iteration
+//     });
+//   }, (err) => {
+//     if (err) {
+//       console.error('document_not_found', err);
+//       return callback(err);
+//     }
+
+//     return callback(null, snapshot);
+//   });
+// });
 
 
 module.exports = mongoose.model('Snapshot', SnapshotSchema);

@@ -47,7 +47,7 @@ const Job = {
         is_hour: false,
         is_day: false,
         is_month: false,
-        is_year: false,
+        is_year: false
       };
 
       Snapshot.findSnapshotsByFiltersAndMerge(hourlyData, (err, snapshot) => {
@@ -64,7 +64,7 @@ const Job = {
         is_hour: true,
         is_day: false,
         is_month: false,
-        is_year: false,
+        is_year: false
       };
 
       // Snapshot.findSnapshotsByFiltersAndMerge(dailyData, (err, snapshot) => {
@@ -81,7 +81,7 @@ const Job = {
         is_hour: true,
         is_day: false,
         is_month: false,
-        is_year: false,
+        is_year: false
       };
 
       // Snapshot.findSnapshotsByFiltersAndMerge(monthlyData, (err, snapshot) => {
