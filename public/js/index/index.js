@@ -11,6 +11,12 @@ window.addEventListener('load', () => {
       }
     });
   }
+  const inputElement = document.getElementById('snapshot-json');
+  const jsonString = inputElement.value;
+  const snapshots = JSON.parse(jsonString);
+
+  console.log(snapshots);
+
   const xValues = [1,2,3,4,5,6,7,8,9,10,11,12]; //bunu yunusa sor
   const yValues = [1000,2,3,4,5,6,7,8,9,10,11,12];
 
