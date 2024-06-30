@@ -35,8 +35,6 @@ const Job = {
         Snapshot.createSnapshot(data , (err, snapshot) => {
           if (err)
             return console.log(err);
-
-          console.log("snapshot created")
         });
       });
 
@@ -54,8 +52,6 @@ const Job = {
       Snapshot.findSnapshotsByFiltersAndMerge(hourlyData, (err, snapshot) => {
         if (err)
         return console.log(err)
-      if (snapshot)
-      console.log('hour snapshot created');
       });
 
       // const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
@@ -72,8 +68,6 @@ const Job = {
       Snapshot.findSnapshotsByFiltersAndMerge(dailyData, (err, snapshot) => {
         if (err)
         return console.log(err)
-      if (snapshot)
-      console.log('daily snapshot created');
       });
 
       // const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -90,8 +84,6 @@ const Job = {
       Snapshot.findSnapshotsByFiltersAndMerge(monthlyData, (err, snapshot) => {
         if (err)
         return console.log(err)
-      if (snapshot)
-      console.log('monthly snapshot created');
       });
 
       // const oneYearAgo = Date.now() - (365 * 24 * 60 * 60 * 1000);
@@ -106,7 +98,6 @@ const Job = {
 
       Snapshot.findSnapshotsByFiltersAndMerge(yearlyData, (err, snapshot) => {
         if (err) return console.log(err);
-        if (snapshot) console.log('yearly snapshot created');
       });
     });
     callback(null);

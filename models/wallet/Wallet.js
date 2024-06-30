@@ -122,7 +122,6 @@ WalletSchema.statics.createWallet = function (data, callback) {
     available_balance: data.available_balance,
     last_value_update_time: Date.now()
   });
-  console.log(newWallet);
 
   newWallet.save((err, wallet) => {
     console.log(err);

@@ -203,7 +203,6 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
     if (err) return callback(err);
 
     if (snapshots && snapshots.length > 0) {
-      console.log(snapshots);
       let mergeData;
 
       if (!data.is_hour && !data.is_day && !data.is_month && !data.is_year) {
@@ -246,9 +245,6 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
 
       Snapshot.createSnapshot(mergeData, (err, newSnapshot) => {
         if (err) return callback(err);
-        console.log('************');
-        console.log(newSnapshot);
-        console.log('************');
 
         const filterData = {
           is_hour: data.is_hour,
@@ -256,7 +252,6 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
           is_month: data.is_month,
           is_year: data.is_year,
         };
-        console.log(filterData);
 
         Snapshot.findSnapshotsByFilters(filterData, (err, snapshotsToDelete) => {
           if (err) return callback(err);
@@ -265,13 +260,11 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
             async.eachSeries(
               snapshotsToDelete,
               (snapshot, next) => {
-                console.log(snapshot);
                 Snapshot.findByIdAndDelete(snapshot._id, (err) => {
                   if (err) {
                     console.error('document_not_found', err);
                     return next(err);
                   }
-                  console.log("deleted");
                   next(); // Move to the next iteration
                 });
               },

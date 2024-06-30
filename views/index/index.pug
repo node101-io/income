@@ -2,6 +2,7 @@ extends ../partials/head
 block content
   .all-wrapper
     .all-header
+      input.display-none#snapshot-json(type='text' value=JSON.stringify(chain))
       h1.general-text-title Income Chart
       input.general-header-search-input#chain-search-input(type='text' placeholder='Search' value=chains_search style='margin-left: auto; margin-right: 20px;')
       a.general-form-button(href='/chain/create') Add New Chain

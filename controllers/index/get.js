@@ -2,6 +2,8 @@ const Chain = require('../../models/chain/Chain');
 
 module.exports = (req, res) => {
   Chain.findChainCountByFilters(req.query, (err, count) => {
+    console.log()
+    console.log('chain req.query' + req.query);
     if(err) return res.redirect('/error?message=' + err);
 
     Chain.findChainsByFilters(req.query, (err, data) => {
