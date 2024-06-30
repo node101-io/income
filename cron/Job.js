@@ -41,9 +41,10 @@ const Job = {
       });
 
       // const oneHourAgo = Date.now() - (60 * 60 * 1000);
-      const oneHourAgo = Date.now() - (60 * 4 * 1000);
+      const oneHourAgo = Date.now() - (2 * 60 * 1000);
       const hourlyData = {
-        date: { $lte: oneHourAgo },
+        // date: { $lte: oneHourAgo },
+        date_before: oneHourAgo,
         is_hour: false,
         is_day: false,
         is_month: false,
@@ -58,9 +59,10 @@ const Job = {
       });
 
       // const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-      const oneDayAgo = Date.now() - (24 * 60 * 1000);
+      const oneDayAgo = Date.now() - (4 * 60 * 1000);
       const dailyData = {
-        date: { $gte: oneDayAgo },
+        // date: { $lte: oneDayAgo },
+        date_before: oneDayAgo,
         is_hour: true,
         is_day: false,
         is_month: false,
@@ -75,11 +77,12 @@ const Job = {
       });
 
       // const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-      const oneMonthAgo = Date.now() - (24 * 60 * 10 * 1000);
+      const oneMonthAgo = Date.now() - (8 * 60 * 1000);
       const monthlyData = {
-        date: { $gte: oneMonthAgo },
-        is_hour: true,
-        is_day: false,
+        // date: { $lte: oneMonthAgo },
+        date_before: oneMonthAgo,
+        is_hour: false,
+        is_day: true,
         is_month: false,
         is_year: false
       };
@@ -89,6 +92,21 @@ const Job = {
         return console.log(err)
       if (snapshot)
       console.log('monthly snapshot created');
+      });
+
+      // const oneYearAgo = Date.now() - (365 * 24 * 60 * 60 * 1000);
+      const oneYearAgo = Date.now() - (16 * 60 * 1000);
+      const yearlyData = {
+        date_before: oneYearAgo,
+        is_hour: false,
+        is_day: false,
+        is_month: true,
+        is_year: false
+      };
+
+      Snapshot.findSnapshotsByFiltersAndMerge(yearlyData, (err, snapshot) => {
+        if (err) return console.log(err);
+        if (snapshot) console.log('yearly snapshot created');
       });
     });
     callback(null);

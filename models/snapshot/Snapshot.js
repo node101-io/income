@@ -137,19 +137,40 @@ SnapshotSchema.statics.createSnapshot = function (data, callback) {
 SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) {
   const Snapshot = this;
 
-  let filters = {};
-  if (!data || typeof data != 'object')
+  if (!data || typeof data !== 'object') {
     return callback('bad_request');
-
-  if (data.chain_id && validator.isMongoId(data.chain_id.toString()))
-    filters.chain_id = data.chain_id.toString();
-
-  if (data.date && typeof data.date === 'object') {
-    filters = data;
   }
-  Snapshot
-    .find(filters)
-    .sort({ order: 1})
+
+  let filters = {};
+
+  // if (data.date) {
+  //   if (typeof data.date === 'number') {
+  //     filters.date = data.date;
+  //   } else if (typeof data.date === 'object') {
+  //     filters.date = {};
+  //     if (data.date.$gte) filters.date.$gte = data.date.$gte;
+  //     if (data.date.$lte) filters.date.$lte = data.date.$lte;
+  //   }
+  // }
+  if (data.date_before || typeof data.date_before === 'number') {
+    filters.date = { $lte: data.date_before };
+  }
+
+  if (typeof data.is_hour === 'boolean') {
+    filters.is_hour = data.is_hour;
+  }
+  if (typeof data.is_day === 'boolean') {
+    filters.is_day = data.is_day;
+  }
+  if (typeof data.is_month === 'boolean') {
+    filters.is_month = data.is_month;
+  }
+  if (typeof data.is_year === 'boolean') {
+    filters.is_year = data.is_year;
+  }
+
+  Snapshot.find(filters)
+    .sort({ order: 1 })
     .exec((err, snapshots) => {
       if (err) {
         return callback('database_error');
@@ -234,7 +255,6 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
           is_day: data.is_day,
           is_month: data.is_month,
           is_year: data.is_year,
-          date: { $lte: Date.now() - (1 * 60 * 1000) } // dont forget to change it 15
         };
         console.log(filterData);
 
