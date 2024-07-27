@@ -5,11 +5,10 @@ const validator = require('validator');
 const getChain = require('./functions/getChain');
 const getPriceFromAPI = require('./functions/getPriceFromAPI');
 
+const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000;
 const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3;
 const MAX_DOCUMENT_COUNT_PER_QUERY = 1e2;
-const PRICE_UPDATE_INTERVAL = 1 * 60 * 1e3;
-const DEFAULT_DOCUMENT_COUNT_PER_QUERY = 20;
 
 const Schema = mongoose.Schema;
 
@@ -45,7 +44,7 @@ const ChainSchema = new Schema({
     default: null,
     min: 0
   },
-  total_value: {
+  total_token_count: {
     type: Number,
     default: 0,
     min: 0
@@ -138,7 +137,7 @@ ChainSchema.statics.findChainByIdAndUpdate = function (id, data, callback) {
     apr: data.apr,
     price: data.price,
     last_price_update_time: data.last_price_update_time,
-    total_value: data.total_value
+    total_token_count: data.total_token_count
   }}, { new: true }, (err, chain) => {
     if (err) return callback('database_error');
     if (!chain) return callback('document_not_found');
@@ -319,7 +318,7 @@ ChainSchema.statics.calculateTotalValueOfAllChains = function (callback) {
     async.timesSeries(
       chains.length,
       (time, next) => {
-        chainsTotalValue += chains[time].total_value;
+        chainsTotalValue += chains[time].total_token_count;
         next();
       },
       (err) => {

@@ -1,5 +1,5 @@
-const Chain = require('../../models/chain/Chain');
-const Snapshot = require('../../models/snapshot/Snapshot')
+const Chain = require('../../../models/chain/Chain');
+const Snapshot = require('../../../models/snapshot/Snapshot')
 module.exports = (req, res) => {
   Chain.findChainCountByFilters(req.query, (err, count) => {
     if(err) return res.redirect('/error?message=' + err);

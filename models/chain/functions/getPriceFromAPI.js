@@ -1,14 +1,14 @@
-module.exports = (token, callback) => {
-  fetch(`https://api-osmosis.imperator.co/tokens/v2/price/${token}`)
-  .then(res => res.json())
-  .then(res => {
-    const price = res.price;
-    if (!price)
-      return callback('document_not_found');
+const PRICE_API_URL = 'https://api-osmosis.imperator.co/tokens/v2/price';
 
-    return callback(null, price);
-  })
-  .catch(err => {
-    return callback('network_error');
-  })
+module.exports = (token, callback) => {
+  fetch(`${PRICE_API_URL}/${token}`)
+    .then(res => res.json())
+    .then(res => {
+      const price = res.price;
+
+      if (!price || isNaN(Number(res.price))) return callback('not_found');
+
+      return callback(null, Number(price));
+    })
+    .catch(_ => callback('network_error'));
 };

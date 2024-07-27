@@ -3,13 +3,14 @@ module.exports = (wallet, callback) => {
     return callback('document_not_found');
 
   return callback(null, {
+    chain_id: wallet.chain_id.toString(),
     _id: wallet._id.toString(),
     public_key: wallet.public_key,
-    name: wallet.name,
-    chain_id: wallet.chain_id,
-    reward_commission: wallet.reward_commission,
-    self_stake_value: wallet.self_stake_value,
-    stake_value: wallet.stake_value,
-    available_balance: wallet.available_balance
+    description: wallet.description,
+    reward_commission_percentage: wallet.reward_commission_percentage,
+    self_staked_token_balance: wallet.self_staked_token_balance,
+    self_unstaked_token_balance: wallet.self_unstaked_token_balance,
+    external_staked_token_balance: wallet.external_staked_token_balance,
+    self_total_token_balance: wallet.self_staked_token_balance + wallet.self_unstaked_token_balance
   });
 };

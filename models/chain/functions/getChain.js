@@ -8,6 +8,6 @@ module.exports = (chain, callback) => {
     apr: chain.apr,
     token: chain.token,
     price: chain.price,
-    total_value: chain.total_value
+    total_token_count: chain.total_token_count
   });
 };

@@ -25,9 +25,9 @@ block content
           canvas.all-content-snapshot-canvas#snapshot-canvas
           .all-content-snapshot-graph-filter-option-wrapper
             each option, index in options
-              label.all-content-snapshot-graph-filter-option(for=`option${index}`)
-                input(type="checkbox" id=`option${index}`)
-                .all-content-snapshot-graph-filter-option-label=option
+              label.checkbox
+                input.all-content-snapshot-graph-filter-option-checkbox(type='checkbox' id=option value=option)
+                span.checkbox-label=option
       .all-content-last-transactions-wrapper
       .all-content-chain-list-wrapper
         h1.general-text-title Chain List

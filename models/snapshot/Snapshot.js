@@ -169,7 +169,8 @@ SnapshotSchema.statics.findSnapshotsByFilters = function (data, callback) {
     filters.is_year = data.is_year;
   }
 
-  Snapshot.find(filters)
+  Snapshot
+    .find(filters)
     .sort({ order: 1 })
     .exec((err, snapshots) => {
       if (err) {
@@ -288,39 +289,4 @@ SnapshotSchema.statics.findSnapshotsByFiltersAndMerge = function (data, callback
   });
 };
 
-// Snapshot.createSnapshot(mergeData, (err, snapshot) => {
-//   if (err) return callback(err);
-
-//   async.eachSeries(snapshots, (snapshot, next) => {
-//     Snapshot.findSnapshotsByIdAndDelete(snapshot._id, (err) => {
-//       if (err) {
-//         console.error('document_not_found', err);
-//         return next(err);
-//       }
-//       console.log("deleted");
-//       next(); // Move to the next iteration
-//     });
-//   }, (err) => {
-//     if (err) {
-//       console.error('document_not_found', err);
-//       return callback(err);
-//     }
-
-//     return callback(null, snapshot);
-//   });
-// });
-
-
 module.exports = mongoose.model('Snapshot', SnapshotSchema);
-
-// let totalTokenBalance = 0;
-// let totalUsdBalance = 0;
-
-// snapshots.forEach(snapshot => {
-//   totalTokenBalance += snapshot.current_token_balance;
-//   totalUsdBalance += snapshot.current_usd_balance;
-// });
-
-// // Calculate average USD balance
-// const averageUsdBalance = totalUsdBalance / snapshots.length;
-// const averageTokenBalance = totalTokenBalance / snapshots.length;

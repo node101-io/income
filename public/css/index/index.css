@@ -48,3 +48,26 @@
   padding-bottom: 10px;
   border-radius: 10px;
 }
+
+.all-content-snapshot-graph-filter-option-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 20px;
+}
+
+label.checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  background-color: pink;
+}
+span.checkbox-label {
+  font-size: 16px;
+  color: #333;
+}

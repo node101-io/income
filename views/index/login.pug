@@ -1,0 +1,7 @@
+extends ../partials/head
+block content
+  .all-wrapper
+    form.form-wrapper(method='POST' action='/login')
+      h1.general-text-title= __('Bot Dashboard')
+      input.general-form-input(type='password' name='password' placeholder=__('Password') required autofocus)
+      button.general-form-button= __('Login')

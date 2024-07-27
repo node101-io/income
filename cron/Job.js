@@ -4,9 +4,13 @@ const Chain = require('../models/chain/Chain');
 const Wallet = require('../models/wallet/Wallet');
 const Snapshot = require('../models/snapshot/Snapshot');
 
+const EVERY_FIVE_MINS_CRON = '*/5 * * * *';
+const EVERY_HOUR_CRON = '*/60 * * * *';
+const EVERY_MIN_CRON = '*/1 * * * *';
+
 const Job = {
   start: callback => {
-    croner.Cron(process.env.SCHEDULE || '*/5 * * * *' , () => {
+    croner.Cron(EVERY_FIVE_MINS_CRON, () => {
       Chain._updateChainPrices((err) => {
         if (err)
           return console.log(err);
@@ -15,14 +19,14 @@ const Job = {
       });
     });
 
-    croner.Cron(process.env.SCHEDULE || '*/60 * * * *' , () => {
+    croner.Cron(EVERY_HOUR_CRON, () => {
       Wallet._updateWalletValues((err) => {
         if (err)
           return console.log(err);
       });
     });
 
-    croner.Cron(process.env.SCHEDULE || '*/1 * * * *' , () => {
+    croner.Cron(EVERY_MIN_CRON, () => {
       Chain.calculateTotalValueOfAllChains((err, chainsTotalValue) => {
         const data = {
           is_hour: false,
@@ -100,7 +104,8 @@ const Job = {
         if (err) return console.log(err);
       });
     });
-    callback(null);
+
+    callback();
   }
 };
 

@@ -1,8 +1,9 @@
+// IMPORTANT: This model is only to be accessed by Chain model
+// Please do not call any of these functions from any other file!
+
 const async = require('async');
 const mongoose = require('mongoose');
 const validator = require('validator');
-
-const Chain = require('../chain/Chain');
 
 const getWallet = require('./functions/getWallet');
 const getUpdatedWalletValues = require('./functions/getUpdateWalletValues');
@@ -10,12 +11,16 @@ const getUpdatedWalletValues = require('./functions/getUpdateWalletValues');
 const DUPLICATED_UNIQUE_FIELD_ERROR_CODE = 11000;
 const MAX_DATABASE_TEXT_FIELD_LENGTH = 1e3;
 const MAX_QUERY_COUNT = 1e2;
-const TYPE_LIST = ['normal', 'validator'];
+const WALLET_TYPE_ALLOWED_VALUES = ['normal', 'validator'];
 const VALUE_UPDATE_INTERVAL = 1 * 60 * 1e3;
 
 const Schema = mongoose.Schema;
 
 const WalletSchema = new Schema({
+  chain_id: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
   public_key: {
     type: String,
     required: true,
@@ -23,45 +28,40 @@ const WalletSchema = new Schema({
     unique: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  name: {
-    type: String,
-    trim: true,
-    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
-  },
-  chain_id: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-    trim: true,
-    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
-  },
-  type: {
+  description: {
     type: String,
     required: true,
-    default: 'normal',
-    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
-  },
-  reward_commission: {
-    type: Number,
     trim: true,
     maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  self_stake_value: {
-    type: Number,
-    trim: true,
-    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
+  wallet_type: {
+    type: String,
+    required: true,
+    minlength: 1,
+    maxlength: MAX_DATABASE_TEXT_FIELD_LENGTH
   },
-  stake_value: {
+  reward_commission_percentage: {
     type: Number,
-    trim: true,
-    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
+    required: true,
+    min: 0,
+    max: 100
   },
-  available_balance: {
+  self_staked_token_balance: {
     type: Number,
     default: 0,
-    trim: true,
-    maxlenght: MAX_DATABASE_TEXT_FIELD_LENGTH
+    min: 0
   },
-  last_value_update_time: {
+  self_unstaked_token_balance: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  external_staked_token_balance: { // Defined only if wallet_type: 'validator'
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  last_token_balance_update_time: {
     type: Number,
     required: true
   }
@@ -77,7 +77,7 @@ WalletSchema.statics.findWalletById = function (id, callback) {
     if (err) return callback('database_error');
     if (!wallet) return callback('document_not_found');
 
-    return callback(null, wallet)
+    return callback(null, wallet);
   });
 };
 
@@ -87,15 +87,15 @@ WalletSchema.statics.findWalletByIdAndFormat = function (id, callback) {
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
 
-    Wallet.findWalletById(id, (err, wallet) => {
+  Wallet.findWalletById(id, (err, wallet) => {
+    if (err) return callback(err);
+
+    getWallet(wallet, (err, wallet) => {
       if (err) return callback(err);
 
-      getWallet(wallet, (err, wallet) => {
-        if (err) return callback(err);
-
-        return callback(null, wallet);
-      });
+      return callback(null, wallet);
     });
+  });
 };
 
 WalletSchema.statics.createWallet = function (data, callback) {
@@ -103,46 +103,68 @@ WalletSchema.statics.createWallet = function (data, callback) {
 
   if (!data || typeof data != 'object')
     return callback('bad_request');
+
   if (!data.public_key || typeof data.public_key != 'string' || !data.public_key.trim().length || data.public_key.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
     return callback('bad_request');
-  if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()) || !data.chain_id.trim().length || data.chain_id.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
+
+  if (!data.chain_id || !validator.isMongoId(data.chain_id.toString()))
     return callback('bad_request');
 
-  if(data.name && (typeof data.name != 'string' || !data.name.trim().length || data.name.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH))
-  return callback('bad_request');
+  if(!data.description || typeof data.description != 'string' || !data.description.trim().length || data.description.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
+    return callback('bad_request');
 
-  const newWallet = new Wallet({
+  if (!data.wallet_type || !WALLET_TYPE_ALLOWED_VALUES.includes(wallet_type))
+    return callback('bad_request');
+
+  if (!data.reward_commission_percentage || isNaN(Number(data.reward_commission_percentage)) || Number(data.reward_commission_percentage) < 0 || Number(data.reward_commission_percentage) > 100)
+    return callback('bad_request');
+
+  const newWalletData = {
+    chain_id: new mongoose.Types.ObjectId(data.chain_id.toString()),
     public_key: data.public_key.trim(),
-    name: data.name.trim(),
-    chain_id: data.chain_id.trim(),
-    type: data.type,
-    reward_commission: data.reward_commission,
-    self_stake_value: data.self_stake_value,
-    stake_value: data.stake_value,
-    available_balance: data.available_balance,
-    last_value_update_time: Date.now()
-  });
+    description: data.description.trim(),
+    wallet_type: data.wallet_type,
+    reward_commission_percentage: Number(data.reward_commission_percentage)
+  };
+
+  if (data.self_staked_token_balance && !isNaN(Number(data.self_staked_token_balance)) && Number(data.self_staked_token_balance) > 0)
+    newWalletData.self_staked_token_balance = Number(data.self_staked_token_balance);
+
+  if (data.self_unstaked_token_balance && !isNaN(Number(data.self_unstaked_token_balance)) && Number(data.self_unstaked_token_balance) > 0)
+    newWalletData.self_unstaked_token_balance = Number(data.self_unstaked_token_balance);
+
+  if (data.external_staked_token_balance && !isNaN(Number(data.external_staked_token_balance)) && Number(data.external_staked_token_balance) > 0)
+    newWalletData.external_staked_token_balance = Number(data.external_staked_token_balance);
+
+  newWalletData.last_token_balance_update_time = Date.now();
+
+  const newWallet = new Wallet(newWalletData);
 
   newWallet.save((err, wallet) => {
-    console.log(err);
-    if (err && err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
-      return callback('duplicated_unique_field');
-    if (err)
+    if (err) {
+      if (err.code == DUPLICATED_UNIQUE_FIELD_ERROR_CODE)
+        return callback('duplicated_unique_field');
+
       return callback('database_error');
+    };
 
     return callback(null, wallet);
   });
 };
 
-WalletSchema.statics.findWalletByIdAndUpdate = function (id, data, callback) {
+WalletSchema.statics.findWalletIdAndUpdate = function (chain_id, id, data, callback) {
   const Wallet = this;
+
+  if (!chain_id || !validator.isMongoId(chain_id.toString()))
+    return callback('bad_request');
 
   if (!id || !validator.isMongoId(id.toString()))
     return callback('bad_request');
+
   if (!data || typeof data != 'object')
     return callback('bad_request');
-  // if (!data.type || typeof data.type != 'string' || !data.type.trim().length || data.type.trim().length > MAX_DATABASE_TEXT_FIELD_LENGTH)
-  //   return callback('bad_request');
+
+  const update = {};
 
   Wallet.findByIdAndUpdate(id, { $set: {
     name: data.name,
